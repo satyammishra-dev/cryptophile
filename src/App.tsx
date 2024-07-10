@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Onboarding from "./pages/Onboarding";
+import useUserContext, { UserContextProvider } from "./context/User";
+import useUserList from "./hooks/useUserList";
+import { GlobalNavigatorProvider } from "./context/GlobalNavigator";
+import Main from "./pages/Main";
+import { ExplorerProvider } from "./context/Explorer";
 
-function App() {
+const AppWithProviders = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <UserContextProvider>
+      <ExplorerProvider>
+        <AppWithGlobalNavigatorProvider />
+      </ExplorerProvider>
+    </UserContextProvider>
   );
-}
+};
+const AppWithGlobalNavigatorProvider = () => {
+  const userList = useUserList();
+  return (
+    <GlobalNavigatorProvider
+      initialRouteItem={userList.length === 0 ? "home" : "onboarding/existing"}
+    >
+      <App />
+    </GlobalNavigatorProvider>
+  );
+};
 
-export default App;
+const App = () => {
+  const [user, setUser] = useUserContext();
+
+  return (
+    <div className="w-full h-full">{user ? <Main /> : <Onboarding />}</div>
+  );
+};
+
+export default AppWithProviders;
