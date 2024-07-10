@@ -1,7 +1,11 @@
 import Color from "@/pages/Main/Sidebar/colors";
 import { Path, UpdateOrGetByPathType } from ".";
 import { Folder, PasswordItem, SafeUserV1Type } from "../User";
-import { checkFolderByData, getIdPathString } from "@/lib/explorer-utils";
+import {
+  checkFolderByData,
+  generateItemId,
+  getIdPathString,
+} from "@/lib/explorer-utils";
 
 export type SingularOperations = {
   createFolder: (name: string, path?: Path) => void;
@@ -34,7 +38,7 @@ const useSingularOperations = (
     return {
       title: name,
       description: "",
-      id: "new-folder",
+      id: generateItemId(),
       created: new Date(),
       lastModified: new Date(),
       contents: [],
@@ -50,7 +54,7 @@ const useSingularOperations = (
     return {
       title: name,
       description: "",
-      id: "new-password",
+      id: generateItemId(),
       username: username ? username : "",
       password: password ? password : "",
       created: new Date(),
