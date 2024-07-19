@@ -8,13 +8,13 @@ import {
 } from "@/lib/explorer-utils";
 
 export type SingularOperations = {
-  createFolder: (name: string, path?: Path) => void;
+  createFolder: (name: string, path?: Path) => string;
   createPassword: (
     name: string,
     path?: Path,
     username?: string,
     password?: string
-  ) => void;
+  ) => string;
   setFavourite: (path?: Path, value?: boolean) => void;
   checkFavourite: (path?: Path) => boolean | undefined;
   renameItem: (name: string, path?: Path) => void;
@@ -77,11 +77,13 @@ const useSingularOperations = (
     if (!dir || !("contents" in dir))
       throw new Error("The location does not exist.");
     const contents = dir.contents;
-    const newContents = [...contents, NEW_FOLDER_DATA(name)];
+    const folder = NEW_FOLDER_DATA(name);
+    const newContents = [...contents, folder];
     updateOrGetByPath(path ? path : currentDirectoryIdPath, {
       ...dir,
       contents: newContents,
     });
+    return folder.id;
   };
 
   const createPassword = (
@@ -90,10 +92,18 @@ const useSingularOperations = (
     username?: string,
     password?: string
   ) => {
-    updateOrGetByPath(
-      path ? path : currentDirectoryIdPath,
-      NEW_PASSWORD_ITEM_DATA(name, username, password)
-    );
+    path = path ? path : currentDirectoryIdPath;
+    const dir = updateOrGetByPath(path);
+    if (!dir || !("contents" in dir))
+      throw new Error("The location does not exist.");
+    const contents = dir.contents;
+    const passwordItem = NEW_PASSWORD_ITEM_DATA(name, username, password);
+    const newContents = [...contents, passwordItem];
+    updateOrGetByPath(path ? path : currentDirectoryIdPath, {
+      ...dir,
+      contents: newContents,
+    });
+    return passwordItem.id;
   };
 
   const checkFavourite = (path?: Path) => {

@@ -1,13 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import React, { useState } from "react";
-import { NewFolderDialog } from "../Header/Toolbar/NewItemButton";
+import {
+  NewFolderDialog,
+  NewPasswordItemDialog,
+} from "../Header/Toolbar/NewItemButton";
 import useExplorer from "@/context/Explorer";
 
 const EmptyFolder = () => {
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false);
   const closeFolderDialog = () => {
     setIsFolderDialogOpen(false);
+  };
+  const [isPasswordItemDialogOpen, setIsPasswordItemDialogOpen] =
+    useState(false);
+  const closePasswordItemDialog = () => {
+    setIsPasswordItemDialogOpen(false);
   };
   const { singularOps } = useExplorer();
 
@@ -33,12 +41,24 @@ const EmptyFolder = () => {
             close={closeFolderDialog}
           />
         </Dialog>
-        <Button size={"sm"}>
-          <span>
-            <i className="fa-regular fa-key mr-2"></i>
-          </span>
-          New Password
-        </Button>
+
+        <Dialog
+          open={isPasswordItemDialogOpen}
+          onOpenChange={(value) => setIsPasswordItemDialogOpen(value)}
+        >
+          <DialogTrigger>
+            <Button size={"sm"}>
+              <span>
+                <i className="fa-regular fa-key mr-2"></i>
+              </span>
+              New Password
+            </Button>
+          </DialogTrigger>
+          <NewPasswordItemDialog
+            createPasswordItem={singularOps.createPassword}
+            close={closePasswordItemDialog}
+          />
+        </Dialog>
       </div>
     </div>
   );

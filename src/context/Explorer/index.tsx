@@ -1,5 +1,11 @@
 import Color from "@/pages/Main/Sidebar/colors";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import useUserContext, { Folder, PasswordItem } from "./../User";
 import useNavigation, { Navigation } from "./Navigation";
 import useSingularOperations, {
@@ -43,56 +49,63 @@ export const ExplorerProvider = ({
   const navigation = useNavigation();
   const { currentDirectoryIdPath } = navigation;
 
-  const updateOrGetByPath: UpdateOrGetByPathType = (path, newValue) => {
-    if (path === undefined) {
-      path = currentDirectoryIdPath;
-    }
-    const updateRecursive = (
-      items: Array<Folder | PasswordItem>,
-      currentPath: string[]
-    ): Array<Folder | PasswordItem> => {
-      if (currentPath.length === 0) {
-        return items.map((item) => item);
+  const updateOrGetByPath: UpdateOrGetByPathType = useCallback(
+    (path, newValue) => {
+      if (path === undefined) {
+        path = currentDirectoryIdPath;
       }
-
-      const currentId = currentPath[0];
-      const remainingPath = currentPath.slice(1);
-
-      return items.map((item) => {
-        if (item.id === currentId) {
-          if (remainingPath.length === 0) {
-            return newValue as Folder | PasswordItem;
-          }
-
-          if ("contents" in item) {
-            return {
-              ...item,
-              contents: updateRecursive(item.contents, remainingPath),
-            };
-          }
+      const updateRecursive = (
+        items: Array<Folder | PasswordItem>,
+        currentPath: string[]
+      ): Array<Folder | PasswordItem> => {
+        if (currentPath.length === 0) {
+          return items.map((item) => item);
         }
 
-        return item;
-      });
-    };
+        const currentId = currentPath[0];
+        const remainingPath = currentPath.slice(1);
 
-    if (newValue !== undefined) {
-      setHomeDirectory((prevHomeDirectory) => {
-        if (!prevHomeDirectory)
+        return items.map((item) => {
+          if (item.id === currentId) {
+            if (remainingPath.length === 0) {
+              return newValue as Folder | PasswordItem;
+            }
+
+            if ("contents" in item) {
+              return {
+                ...item,
+                contents: updateRecursive(item.contents, remainingPath),
+              };
+            }
+          }
+
+          return item;
+        });
+      };
+
+      if (newValue !== undefined) {
+        setHomeDirectory((prevHomeDirectory) => {
+          if (!prevHomeDirectory)
+            throw new Error("Home directory could not be found.");
+          const newHomeDirectory = {
+            ...prevHomeDirectory,
+            contents: (updateRecursive([prevHomeDirectory], path)[0] as Folder)
+              .contents,
+          };
+          console.log("trying to change homedirectory", newHomeDirectory);
+          return newHomeDirectory;
+        });
+        return newValue;
+      } else {
+        console.log("value of homedirectory received", homeDirectory);
+        if (!homeDirectory)
           throw new Error("Home directory could not be found.");
-        return {
-          ...prevHomeDirectory,
-          contents: (updateRecursive([prevHomeDirectory], path)[0] as Folder)
-            .contents,
-        };
-      });
-      return newValue;
-    } else {
-      if (!homeDirectory) throw new Error("Home directory could not be found.");
-      const foundItem = getItemByPath(path, homeDirectory);
-      return foundItem;
-    }
-  };
+        const foundItem = getItemByPath(path, homeDirectory);
+        return foundItem;
+      }
+    },
+    [homeDirectory]
+  );
 
   const selection = useSelection(currentDirectoryIdPath, updateOrGetByPath);
   const { selectedItemIds } = selection;
@@ -124,13 +137,18 @@ export const ExplorerProvider = ({
   );
 
   useEffect(() => {
+    //For when user changes account or logs out.
     console.log(userData);
-    setHomeDirectory(userData?.directory);
+    setHomeDirectory(() => {
+      console.log("trying to change home directory", userData?.directory);
+      return userData?.directory;
+    });
     setFavourites(userData?.favourites);
     setTagged(userData?.tagged);
   }, [userData]);
 
   useEffect(() => {
+    console.log("homedirectory change detected", homeDirectory);
     if (!homeDirectory || !favourites || !tagged) {
       return;
     }

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import useExplorer from "@/context/Explorer";
-import useUserContext from "@/context/User";
+import useUserContext, { Folder } from "@/context/User";
 import {
   checkFolderByData,
   getContentCount,
@@ -25,18 +25,16 @@ const InfoTile = ({ heading, children, ...props }: InfoTileProps) => {
   );
 };
 
-const FolderInfo = () => {
-  const [user] = useUserContext();
-  const { navigation } = useExplorer();
-  const currentDirIdPath = navigation.currentDirectoryIdPath;
-  const homeDirectory = user?.userData.directory;
-  const folderData = homeDirectory
-    ? getItemByPath(currentDirIdPath, homeDirectory)
-    : undefined;
-
-  const contentCount = folderData
-    ? checkFolderByData(folderData)
-      ? getContentCount(folderData)
+const FolderInfo = ({
+  folder,
+  idPath,
+}: {
+  folder: Folder;
+  idPath: string[];
+}) => {
+  const contentCount = folder
+    ? checkFolderByData(folder)
+      ? getContentCount(folder)
       : undefined
     : undefined;
   return (
@@ -45,7 +43,7 @@ const FolderInfo = () => {
         <div className=" h-[100px] w-[100px] rounded-2xl flex items-center justify-center">
           <i className="fa-solid fa-folder text-8xl text-foreground/20"></i>
         </div>
-        <div className="font-bold text-xl mt-2">{folderData?.title}</div>
+        <div className="font-bold text-xl mt-2">{folder?.title}</div>
         <div className="flex items-center gap-2 mt-4">
           <Button
             variant={"secondary"}
@@ -79,7 +77,7 @@ const FolderInfo = () => {
             }
             className=" col-span-2 mb-4"
           >
-            <div className="w-full">{folderData?.description}</div>
+            <div className="w-full">{folder?.description}</div>
           </InfoTile>
           <InfoTile
             heading={

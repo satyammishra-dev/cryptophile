@@ -11,6 +11,10 @@ export type ExplorerConfig = {
   viewModeState: [ViewMode, React.Dispatch<React.SetStateAction<ViewMode>>];
   filterState: [Filter, React.Dispatch<React.SetStateAction<Filter>>];
   sortModeState: [SortMode, React.Dispatch<React.SetStateAction<SortMode>>];
+  expandedPasswordViewState: [
+    boolean,
+    React.Dispatch<React.SetStateAction<boolean>>
+  ];
   focussedIdPaths: Path[];
 };
 
@@ -27,6 +31,10 @@ const useExplorerConfig = (
 
   const sortModeState = useState<SortMode>();
   const [sortMode, setSortMode] = sortModeState;
+
+  const expandedPasswordViewState = useState(false);
+  const [expandedPasswordView, setExpandedPasswordView] =
+    expandedPasswordViewState;
 
   const getSelectedIdPathsFromSelectedIds = (
     selectedIds: Set<string>
@@ -56,6 +64,7 @@ const useExplorerConfig = (
     filterState,
     sortModeState,
     focussedIdPaths,
+    expandedPasswordViewState,
   };
 
   return explorerConfig;

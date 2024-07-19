@@ -7,6 +7,7 @@ import { getItemByPath } from "@/lib/explorer-utils";
 export type Selection = {
   selectionMode: boolean;
   setSelectionMode: (newSelectionMode: boolean) => void;
+  selectSingleItemById: (itemId: string) => void;
   selectItemById: (itemId: string) => void;
   deselectItemById: (itemId: string) => void;
   selectAll: () => void;
@@ -35,6 +36,20 @@ const useSelection = (
   const removeItem = (item: string) => {
     const newSet = new Set(selectedItemIds);
     newSet.delete(item);
+    setSelectedItemIds(newSet);
+  };
+
+  const selectSingleItemById = (id: string) => {
+    const currentDir = updateOrGetByPath(currentDirectoryIdPath);
+    if (!currentDir || "password" in currentDir)
+      throw new Error("Location could not be found.");
+    const contents = currentDir.contents;
+    console.log("CO", id, contents);
+    const item = contents.find((item) => item.id === id);
+    if (!item) throw new Error("The item could not be found.");
+    const newSet = new Set<string>();
+    newSet.add(id);
+    setSelectionMode(false);
     setSelectedItemIds(newSet);
   };
 
@@ -105,6 +120,7 @@ const useSelection = (
   const selection: Selection = {
     selectionMode,
     setSelectionMode,
+    selectSingleItemById,
     selectItemById,
     deselectItemById,
     selectAll,

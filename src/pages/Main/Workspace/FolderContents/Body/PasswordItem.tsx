@@ -1,19 +1,19 @@
 import useExplorer from "@/context/Explorer";
-import { type Folder as FolderType } from "@/context/User";
+import { type PasswordItem as PasswordItemType } from "@/context/User";
 import React from "react";
 
-type FolderProps = {
-  folder: FolderType;
+type PasswordItemProps = {
+  passwordItem: PasswordItemType;
   isSelected?: boolean;
   showSelectCheckbox?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
-const Folder = ({
-  folder,
+const PasswordItem = ({
+  passwordItem,
   isSelected,
   showSelectCheckbox,
   ...props
-}: FolderProps) => {
+}: PasswordItemProps) => {
   return (
     <button
       {...props}
@@ -23,8 +23,6 @@ const Folder = ({
           : "hover:bg-secondary/80 border-transparent"
       } w-32 ${props.className}`}
       onClick={(evt) => {
-        // console.log("yo1");
-        // handleDoubleClick(evt);
         props?.onClick?.(evt);
       }}
     >
@@ -34,10 +32,10 @@ const Folder = ({
         ) : (
           <i className="fa-regular fa-square absolute top-2 left-2"></i>
         ))}
-      <i className="fa-solid fa-folder text-6xl"></i>
-      <span>{folder.title}</span>
+      <i className="fa-solid fa-key text-6xl"></i>
+      <span>{passwordItem.title}</span>
     </button>
   );
 };
 
-export default Folder;
+export default PasswordItem;

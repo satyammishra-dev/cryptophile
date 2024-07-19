@@ -48,7 +48,7 @@ const FolderTable = ({}: FolderTableProps) => {
   return (
     <>
       {homeDirectory?.contents.map((item) => {
-        if ("password" in item) return;
+        if (!("contents" in item)) return;
         return (
           <FolderItem
             folderData={item}
