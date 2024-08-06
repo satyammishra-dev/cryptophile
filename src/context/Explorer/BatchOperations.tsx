@@ -16,6 +16,7 @@ type Tagged = SafeUserV1Type["userData"]["tagged"];
 const useBatchOperations = (
   currentDirectoryIdPath: Path,
   selectedItemIds: Set<string>,
+  deselectAll: () => void,
   favourites: string[] | undefined,
   setFavourites: React.Dispatch<React.SetStateAction<string[] | undefined>>,
   tagged: Tagged | undefined,
@@ -106,6 +107,8 @@ const useBatchOperations = (
       ...parentDir,
       contents: newContents,
     });
+
+    deselectAll();
   };
 
   const getItemsTagByMajority = () => {

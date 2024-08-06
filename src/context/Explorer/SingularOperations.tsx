@@ -28,6 +28,7 @@ type Tagged = SafeUserV1Type["userData"]["tagged"];
 const useSingularOperations = (
   currentDirectoryIdPath: Path,
   selectedItemIds: Set<string>,
+  deselectAll: () => void,
   favourites: string[] | undefined,
   setFavourites: React.Dispatch<React.SetStateAction<string[] | undefined>>,
   tagged: Tagged | undefined,
@@ -175,6 +176,7 @@ const useSingularOperations = (
 
     if (itemExists) {
       updateOrGetByPath(itemParentPath, { ...itemParent, contents });
+      deselectAll();
       return;
     }
     throw new Error("The item does not exist.");

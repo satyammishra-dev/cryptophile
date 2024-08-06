@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import useExplorer from "@/context/Explorer";
 import { getItemByPath } from "@/lib/explorer-utils";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Folder from "./Folder";
 import EmptyFolder from "./EmptyFolderPage";
 import PasswordItem from "./PasswordItem";
@@ -12,6 +12,7 @@ const Body = () => {
     selection: {
       selectedItemIds,
       selectItemById,
+      selectSingleItemById,
       deselectItemById,
       selectionMode,
     },
@@ -37,9 +38,26 @@ const Body = () => {
     }
   };
 
+  const handlePasswordDoubleClick = (id: string) => {
+    if (selectionMode) return;
+    selectSingleItemById(id);
+    setExpandedPasswordView(true);
+  };
+
   const navigateToFolderContents = (id: string) => {
     if (!selectionMode) push([...currentDirectoryIdPath, id]);
   };
+
+  //Select newly created item:
+  useEffect(() => {
+    if (
+      directory &&
+      "contents" in directory &&
+      directory.contents.length === 1
+    ) {
+      selectSingleItemById(directory.contents[0].id);
+    }
+  }, [directory]);
 
   return (
     <>
@@ -67,7 +85,7 @@ const Body = () => {
                       isSelected={selectedItemIds.has(item.id)}
                       showSelectCheckbox={selectionMode}
                       onClick={() => handleItemClick(item.id)}
-                      onDoubleClick={() => setExpandedPasswordView(true)}
+                      onDoubleClick={() => handlePasswordDoubleClick(item.id)}
                     />
                   );
                 })}

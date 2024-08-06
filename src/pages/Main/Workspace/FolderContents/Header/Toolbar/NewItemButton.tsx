@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { TextArea } from "@/components/ui/textarea";
 import useExplorer from "@/context/Explorer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const NewFolderDialog = ({
   createFolder,
@@ -29,7 +29,32 @@ export const NewFolderDialog = ({
   createFolder: (name: string, path?: string[]) => string;
   close: () => void;
 }) => {
+  const {
+    selection: { selectSingleItemById },
+  } = useExplorer();
   const [folderName, setFolderName] = useState("New Folder");
+  const [newItemId, setNewItemId] = useState<string>();
+
+  useEffect(() => {
+    if (newItemId === undefined) return;
+    selectSingleItemById(newItemId);
+    setNewItemId(undefined);
+    setTimeout(() => {
+      close();
+    }, 50);
+  }, [newItemId]);
+
+  const handleCreateFolder = () => {
+    try {
+      const id = createFolder(folderName);
+      setNewItemId(() => {
+        return id;
+      });
+    } catch (e) {
+      alert("Error while creating password");
+      console.error(e);
+    }
+  };
   return (
     <DialogContent>
       <DialogHeader>
@@ -59,14 +84,7 @@ export const NewFolderDialog = ({
         <DialogClose asChild>
           <Button variant={"outline"}>Cancel</Button>
         </DialogClose>
-        <Button
-          onClick={() => {
-            createFolder(folderName);
-            close();
-          }}
-        >
-          Create
-        </Button>
+        <Button onClick={handleCreateFolder}>Create</Button>
       </DialogFooter>
     </DialogContent>
   );
@@ -88,17 +106,28 @@ export const NewPasswordItemDialog = ({
     selection: { selectSingleItemById },
   } = useExplorer();
   const [passwordItemName, setPasswordItemName] = useState("New Password");
+  const [newItemId, setNewItemId] = useState<string>();
+
+  useEffect(() => {
+    console.log("use", newItemId);
+    if (newItemId === undefined) return;
+    selectSingleItemById(newItemId);
+    setNewItemId(undefined);
+    setTimeout(() => {
+      close();
+    }, 50);
+  }, [newItemId]);
+
   const handleCreatePassword = () => {
     try {
       const id = createPasswordItem(passwordItemName);
-      // setTimeout(() => {
-      //   selectSingleItemById(id);
-      // }, 10000);
+      setNewItemId(() => {
+        return id;
+      });
     } catch (e) {
       alert("Error while creating password");
       console.error(e);
     }
-    close();
   };
   return (
     <DialogContent>

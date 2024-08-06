@@ -25,6 +25,9 @@ const PasswordItem = ({
       onClick={(evt) => {
         props?.onClick?.(evt);
       }}
+      onDoubleClick={(evt) => {
+        props?.onDoubleClick?.(evt);
+      }}
     >
       {showSelectCheckbox &&
         (isSelected ? (

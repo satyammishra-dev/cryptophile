@@ -117,7 +117,6 @@ export const createUserWithPassword = async (
       "There was an error creating the account. Try clearing the cookies."
     );
   }
-  console.log(cryptophileData);
 
   if (username in cryptophileData.users)
     throw new Error("User already exists.");

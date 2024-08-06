@@ -5,6 +5,7 @@ import NewItemButton from "./NewItemButton";
 import ViewButtonGroup from "./ViewButtonGroup";
 import FilterButton from "./FilterButton";
 import useExplorer from "@/context/Explorer";
+import ItemOpsButtonGroup from "./ItemOpsButtonGroup";
 
 const Toolbar = () => {
   const viewModeState = useState(0);
@@ -53,17 +54,7 @@ const Toolbar = () => {
             <i className="text-base fa-regular fa-location-arrow"></i>
           </Button>
         </div>
-        <div className="flex items-center gap-1">
-          <Button size={"sm"} variant={"outline"}>
-            <i className="text-base fa-regular fa-star"></i>
-          </Button>
-          <Button size={"sm"} variant={"outline"}>
-            <i className="text-base fa-regular fa-tag"></i>
-          </Button>
-          <Button size={"sm"} variant={"outline"}>
-            <i className="text-base fa-regular fa-trash text-destructive"></i>
-          </Button>
-        </div>
+        <ItemOpsButtonGroup />
       </div>
     </div>
   );

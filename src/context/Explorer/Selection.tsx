@@ -44,7 +44,6 @@ const useSelection = (
     if (!currentDir || "password" in currentDir)
       throw new Error("Location could not be found.");
     const contents = currentDir.contents;
-    console.log("CO", id, contents);
     const item = contents.find((item) => item.id === id);
     if (!item) throw new Error("The item could not be found.");
     const newSet = new Set<string>();

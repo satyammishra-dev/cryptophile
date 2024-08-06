@@ -23,8 +23,6 @@ const Folder = ({
           : "hover:bg-secondary/80 border-transparent"
       } w-32 ${props.className}`}
       onClick={(evt) => {
-        // console.log("yo1");
-        // handleDoubleClick(evt);
         props?.onClick?.(evt);
       }}
     >
