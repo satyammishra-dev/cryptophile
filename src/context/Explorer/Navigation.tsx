@@ -52,6 +52,7 @@ const useNavigation = (
 
   useEffect(() => {
     trySelection(itemToSelect);
+    setItemToSelect(undefined);
   }, [itemToSelect]);
 
   const checkIfLocationExists = (idPath: Path) => {
