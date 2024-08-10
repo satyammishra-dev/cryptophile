@@ -58,3 +58,7 @@ export const checkFolderByData = (
 export const getIdPathString = (path: string[]) => {
   return path.join("/");
 };
+
+export const parseIdPathString = (path: string) => {
+  return path.split("/");
+};

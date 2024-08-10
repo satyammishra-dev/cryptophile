@@ -13,6 +13,7 @@ const Toolbar = () => {
   const {
     selection: { selectionMode, setSelectionMode, deselectAll },
     navigation: { currentDirectoryIdPath },
+    root,
   } = useExplorer();
   const isInitialRender = useRef(true);
 
@@ -20,7 +21,6 @@ const Toolbar = () => {
     if (isInitialRender.current) {
       isInitialRender.current = false;
     } else {
-      deselectAll();
       setSelectionMode(false);
     }
   }, [currentDirectoryIdPath]);
@@ -36,26 +36,28 @@ const Toolbar = () => {
   return (
     <div className="mt-4 flex items-center justify-between">
       <Input placeholder="Search" className="h-10 max-w-[300px] rounded-lg" />
-      <div className="flex items-center gap-4">
-        <NewItemButton />
-        <ViewButtonGroup viewModeState={viewModeState} />
-        <div className="flex items-center gap-1">
-          <FilterButton />
-          <Button size={"sm"} variant={"outline"}>
-            <i className="text-base fa-regular fa-arrow-down-arrow-up"></i>
-          </Button>
+      {root && (
+        <div className="flex items-center gap-4">
+          <NewItemButton />
+          <ViewButtonGroup viewModeState={viewModeState} />
+          <div className="flex items-center gap-1">
+            <FilterButton />
+            <Button size={"sm"} variant={"outline"}>
+              <i className="text-base fa-regular fa-arrow-down-arrow-up"></i>
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size={"sm"}
+              variant={selectionMode ? "default" : "outline"}
+              onClick={handleSelectionModeToggle}
+            >
+              <i className="text-base fa-regular fa-location-arrow"></i>
+            </Button>
+          </div>
+          <ItemOpsButtonGroup />
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            size={"sm"}
-            variant={selectionMode ? "default" : "outline"}
-            onClick={handleSelectionModeToggle}
-          >
-            <i className="text-base fa-regular fa-location-arrow"></i>
-          </Button>
-        </div>
-        <ItemOpsButtonGroup />
-      </div>
+      )}
     </div>
   );
 };

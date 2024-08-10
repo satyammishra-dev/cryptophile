@@ -58,7 +58,7 @@ const FolderTable = ({}: FolderTableProps) => {
               currentDirIdPath[1] === item.id
             }
             onClick={() => {
-              navigation.push(["home", item.id]);
+              navigation.push({ path: ["home", item.id], sourceId: undefined });
             }}
             key={item.id}
           />

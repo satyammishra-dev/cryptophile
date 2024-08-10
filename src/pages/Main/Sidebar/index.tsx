@@ -4,9 +4,9 @@ import UserOptions from "./UserOptions";
 import FolderTable from "./FolderTable";
 import Color, { ColorMap } from "./colors";
 import ColorTag from "./ColorTag";
+import Favourites from "./Favourites";
 
 const Sidebar = () => {
-  const [user] = useUserContext();
   return (
     <div className="min-w-[240px] bg-foreground/5 border-r border-r-border h-full">
       <div className="flex flex-col h-full justify-between">
@@ -14,19 +14,15 @@ const Sidebar = () => {
           <UserOptions />
           <div className="flex flex-col gap-1">
             <div className="font-bold text-sm p-1">
-              <span className="">Favourites</span>
-              <div className="bg-foreground/5 rounded-md px-3 py-3 text-center mt-2">
-                <span className="text-muted-foreground font-normal">
-                  Your favourites appear here.
-                </span>
-              </div>
+              <span>Favourites</span>
             </div>
+            {<Favourites />}
           </div>
           <div className="flex flex-col gap-1">
             <div className="font-bold text-sm p-1">
               <span>Folders</span>
             </div>
-            {user && <FolderTable />}
+            {<FolderTable />}
           </div>
           <div className="flex flex-col gap-1">
             <div className="font-bold text-sm p-1">

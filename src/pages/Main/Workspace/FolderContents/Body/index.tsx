@@ -45,7 +45,8 @@ const Body = () => {
   };
 
   const navigateToFolderContents = (id: string) => {
-    if (!selectionMode) push([...currentDirectoryIdPath, id]);
+    if (!selectionMode)
+      push({ path: [...currentDirectoryIdPath, id], sourceId: id });
   };
 
   //Select newly created item:

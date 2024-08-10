@@ -29,6 +29,9 @@ const PasswordItem = ({
         props?.onDoubleClick?.(evt);
       }}
     >
+      {passwordItem.isFavourite && (
+        <i className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"></i>
+      )}
       {showSelectCheckbox &&
         (isSelected ? (
           <i className="fa-solid fa-check-square absolute top-2 left-2"></i>

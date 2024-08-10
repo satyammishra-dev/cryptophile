@@ -16,6 +16,7 @@ import useBatchOperations, { BatchOperations } from "./BatchOperations";
 import useExplorerConfig, { ExplorerConfig } from "./ExplorerConfig";
 import useSelection, { Selection } from "./Selection";
 import { getItemByPath } from "@/lib/explorer-utils";
+import useStateCallback from "@/hooks/useStateCallback";
 
 export type Path = Array<string>;
 
@@ -40,6 +41,9 @@ export const ExplorerProvider = ({
   children: React.ReactNode;
 }) => {
   //Initialization
+
+  const DEFAULT_PATH: Path = ["home"];
+
   const [user, setUser, setUserProperty] = useUserContext();
   const userData = user?.userData;
 
@@ -47,8 +51,9 @@ export const ExplorerProvider = ({
   const [favourites, setFavourites] = useState(userData?.favourites);
   const [tagged, setTagged] = useState(userData?.tagged);
 
-  const navigation = useNavigation(homeDirectory);
-  const { currentDirectoryIdPath } = navigation;
+  const currentDirIdPathState = useStateCallback(DEFAULT_PATH);
+  const [currentDirectoryIdPath, setCurrentDirectoryIdPath] =
+    currentDirIdPathState;
 
   const updateOrGetByPath: UpdateOrGetByPathType = (path, newValue) => {
     if (path === undefined) {
@@ -104,7 +109,14 @@ export const ExplorerProvider = ({
   };
 
   const selection = useSelection(currentDirectoryIdPath, updateOrGetByPath);
-  const { selectedItemIds, deselectAll } = selection;
+  const { selectedItemIds, deselectAll, selectSingleItemById } = selection;
+
+  const navigation = useNavigation(
+    currentDirIdPathState,
+    homeDirectory,
+    selectSingleItemById,
+    deselectAll
+  );
 
   const config = useExplorerConfig(
     currentDirectoryIdPath,

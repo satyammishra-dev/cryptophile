@@ -26,13 +26,16 @@ const Folder = ({
         props?.onClick?.(evt);
       }}
     >
+      {folder.isFavourite && (
+        <i className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"></i>
+      )}
       {showSelectCheckbox &&
         (isSelected ? (
           <i className="fa-solid fa-check-square absolute top-2 left-2"></i>
         ) : (
           <i className="fa-regular fa-square absolute top-2 left-2"></i>
         ))}
-      <i className="fa-solid fa-folder text-6xl"></i>
+      <i className="fa-solid fa-folder text-primary text-6xl"></i>
       <span>{folder.title}</span>
     </button>
   );

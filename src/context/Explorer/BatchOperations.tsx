@@ -79,10 +79,16 @@ const useBatchOperations = (
     favourites.forEach((itemIdPathString) => {
       if (favouritesSet.has(itemIdPathString)) {
         newFavourites.push(itemIdPathString);
+        favouritesSet.delete(itemIdPathString);
       }
     });
+    favouritesSet.forEach((itemIdPathString) => {
+      newFavourites.push(itemIdPathString);
+    });
 
-    setFavourites(newFavourites);
+    setFavourites(() => {
+      return newFavourites;
+    });
     updateOrGetByPath(currentDirectoryIdPath, {
       ...currentDir,
       contents: newContents,

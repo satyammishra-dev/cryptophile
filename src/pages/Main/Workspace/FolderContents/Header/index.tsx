@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Toolbar from "./Toolbar";
 import useExplorer from "@/context/Explorer";
+import { NavigationProps } from "@/context/Explorer/Navigation";
 
 const BreadCrumb = ({
   idPath,
@@ -12,7 +13,11 @@ const BreadCrumb = ({
 }: {
   idPath: string[];
   namePath: string[];
-  push: (path: string[], clearStack?: boolean) => void;
+  push: (
+    path: NavigationProps,
+    clearStack?: boolean,
+    selectionItemId?: string
+  ) => void;
 }) => {
   return (
     <>
@@ -22,7 +27,9 @@ const BreadCrumb = ({
             variant={"ghost"}
             className="font-bold text-xl px-1"
             key={itemId}
-            onClick={() => push([...idPath].slice(0, idx + 1))}
+            onClick={() =>
+              push({ path: [...idPath].slice(0, idx + 1), sourceId: itemId })
+            }
           >
             {namePath[idx]}{" "}
             {idx !== idPath.length - 1 && (
@@ -106,7 +113,9 @@ const Header = () => {
         <div className="flex items-center">
           <Button
             variant={currentDirIdPath.length === 1 ? "ghost" : "outline"}
-            onClick={() => navigation.push(["home"])}
+            onClick={() =>
+              navigation.push({ path: ["home"], sourceId: undefined })
+            }
             className="mr-1 px-0 w-12"
           >
             <i className="fa-solid fa-home text-xl"></i>

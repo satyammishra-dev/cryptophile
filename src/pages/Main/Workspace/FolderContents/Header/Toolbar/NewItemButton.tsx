@@ -109,7 +109,6 @@ export const NewPasswordItemDialog = ({
   const [newItemId, setNewItemId] = useState<string>();
 
   useEffect(() => {
-    console.log("use", newItemId);
     if (newItemId === undefined) return;
     selectSingleItemById(newItemId);
     setNewItemId(undefined);
