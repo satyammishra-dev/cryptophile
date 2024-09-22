@@ -1,4 +1,4 @@
-import { Folder, SafeUserV1Type, UserV1Type } from "@/context/User";
+import { Folder, SafeUserV2Type, UserV2Type } from "@/context/User";
 import {
   arrayToHex,
   decrypt,
@@ -8,10 +8,10 @@ import {
 import { safeParse } from "./utils";
 import Color, { ColorMap } from "@/pages/Main/Sidebar/colors";
 
-const VERSION = "1";
+const VERSION = "1" as const;
 
 export type CryptophileData = {
-  version: 1;
+  version: "1";
   users: CryptophileUsers;
 };
 
@@ -24,7 +24,7 @@ export type CryptophileUserData =
   | ["0", string, `0x${string}`, string];
 
 export const defaultCryptophileData = {
-  version: 1,
+  version: VERSION,
   users: {},
 } as CryptophileData;
 
@@ -83,17 +83,27 @@ export const INITIAL_DIRECTORY = (): Folder => {
   };
 };
 
-export const INITIAL_USER_DATA = (): SafeUserV1Type["userData"] => {
+type ColorTagsForStorage = {
+  [K in keyof SafeUserV2Type["userData"]["tagged"]]: Array<string>;
+};
+type UserDataForStorage = Omit<SafeUserV2Type["userData"], "tagged"> & {
+  tagged: ColorTagsForStorage;
+};
+
+export const INITIAL_USER_DATA_FOR_STORAGE = (): UserDataForStorage => {
   const directory = INITIAL_DIRECTORY();
-  type ColorTags = SafeUserV1Type["userData"]["tagged"];
-  return {
+  type ColorTags = {
+    [K in keyof SafeUserV2Type["userData"]["tagged"]]: Array<string>;
+  };
+  const data = {
     directory,
     favourites: [],
     tagged: Object.keys(ColorMap).reduce<ColorTags>((acc, color) => {
-      acc[color as Color] = new Set();
+      acc[color as Color] = [];
       return acc;
     }, {} as ColorTags),
   };
+  return data;
 };
 
 export const createUserWithPassword = async (
@@ -128,7 +138,7 @@ export const createUserWithPassword = async (
 
   const encryptedPrivateKey = await encrypt(privateKey, SHAedSHAedPassword);
   const encryptedDisplayName = await encrypt(displayName, privateKey);
-  const data = INITIAL_USER_DATA();
+  const data = INITIAL_USER_DATA_FOR_STORAGE();
   const encryptedData = await encrypt(JSON.stringify(data), privateKey);
 
   const userAuthType = "1";
@@ -156,7 +166,7 @@ export const createUserWithPrivateKey = async (
   let cryptophileDataString = localStorage.getItem("cryptophile-data");
   if (!cryptophileDataString || cryptophileDataString === "") {
     cryptophileDataString = JSON.stringify({
-      version: 1,
+      version: VERSION,
       users: {},
     } as CryptophileData);
     localStorage.setItem("cryptophile-data", cryptophileDataString);
@@ -175,7 +185,7 @@ export const createUserWithPrivateKey = async (
     throw new Error("User already exists.");
 
   const encryptedDisplayName = await encrypt(displayName, privateKey);
-  const data = INITIAL_USER_DATA();
+  const data = INITIAL_USER_DATA_FOR_STORAGE();
   const encryptedData = await encrypt(JSON.stringify(data), privateKey);
 
   const userAuthType = "0";
@@ -224,6 +234,7 @@ export const authenticateUserWithPassword = async (
   const privateKey = await decrypt(user[3], SHAedSHAedPassword);
   const displayName = await decrypt(user[1], privateKey);
   const data = await decrypt(user[5], privateKey);
+  console.log("Dec", data);
   return [displayName, data];
 };
 

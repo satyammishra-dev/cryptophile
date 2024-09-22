@@ -65,6 +65,7 @@ const ExistingUser = ({ userList }: ExistingUserProps) => {
       userData: safeParse(userData),
       credential,
       avatarHex: user.avatarHex,
+      version: 2 as const,
     });
   };
 

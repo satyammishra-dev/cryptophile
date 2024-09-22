@@ -1,6 +1,6 @@
 import Color, { ColorMap } from "@/pages/Main/Sidebar/colors";
 import { Path, UpdateOrGetByPathType } from ".";
-import { Folder, PasswordItem, SafeUserV1Type } from "../User";
+import { Folder, PasswordItem, SafeUserV2Type } from "../User";
 import { checkFolderByData, getIdPathString } from "@/lib/explorer-utils";
 
 export type BatchOperations = {
@@ -11,7 +11,7 @@ export type BatchOperations = {
   setItemsTag: (color: Color | undefined) => void;
 };
 
-type Tagged = SafeUserV1Type["userData"]["tagged"];
+type Tagged = SafeUserV2Type["userData"]["tagged"];
 
 const useBatchOperations = (
   currentDirectoryIdPath: Path,
@@ -169,20 +169,18 @@ const useBatchOperations = (
     const contents = currentDir.contents;
 
     const newTagged = { ...tagged };
+    console.log("hi", newTagged);
 
     const newContents = contents.map((item) => {
-      const idPathString = getIdPathString([
-        ...currentDirectoryIdPath,
-        item.id,
-      ]);
-      if (!selectedItemIds.has(idPathString)) return item;
+      if (!selectedItemIds.has(item.id)) return item;
 
       Object.keys(newTagged).forEach((key) => {
-        const items = newTagged[key as Color];
-        items.delete(idPathString);
+        console.log(key, newTagged);
+        newTagged[key as Color].delete(item.id);
       });
+
       if (tag) {
-        newTagged[tag].add(idPathString);
+        newTagged[tag].add(item.id);
       }
 
       return {
@@ -191,7 +189,9 @@ const useBatchOperations = (
       };
     });
 
-    setTagged(newTagged);
+    setTagged(() => {
+      return newTagged;
+    });
     updateOrGetByPath(currentDirectoryIdPath, {
       ...currentDir,
       contents: newContents,

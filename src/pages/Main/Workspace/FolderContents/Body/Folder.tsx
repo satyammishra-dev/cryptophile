@@ -1,5 +1,6 @@
 import useExplorer from "@/context/Explorer";
 import { type Folder as FolderType } from "@/context/User";
+import { ColorMap } from "@/pages/Main/Sidebar/colors";
 import React from "react";
 
 type FolderProps = {
@@ -29,13 +30,24 @@ const Folder = ({
       {folder.isFavourite && (
         <i className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"></i>
       )}
+      {/*
+      folder.tag && (
+        <div
+          className="h-2 w-2 rounded-full absolute top-6 right-"
+          style={{ background: `rgb(${ColorMap[folder.tag]})` }}
+        ></div>
+      )
+      */}
       {showSelectCheckbox &&
         (isSelected ? (
           <i className="fa-solid fa-check-square absolute top-2 left-2"></i>
         ) : (
           <i className="fa-regular fa-square absolute top-2 left-2"></i>
         ))}
-      <i className="fa-solid fa-folder text-primary text-6xl"></i>
+      <i
+        className="fa-solid fa-folder text-primary text-6xl"
+        style={{ color: folder.tag ? `rgb(${ColorMap[folder.tag]})` : "" }}
+      ></i>
       <span>{folder.title}</span>
     </button>
   );

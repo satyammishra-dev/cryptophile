@@ -1,6 +1,6 @@
 import React from "react";
 
-import useUserContext, { Folder, UserV1Type } from "@/context/User";
+import useUserContext, { Folder, UserV2Type } from "@/context/User";
 import useExplorer from "@/context/Explorer";
 
 type FolderProps = {
@@ -41,7 +41,6 @@ type FolderTableProps = {
 };
 
 const FolderTable = ({}: FolderTableProps) => {
-  const [user, , setUserKey] = useUserContext();
   const { navigation, root: homeDirectory } = useExplorer();
   const currentDirIdPath = navigation.currentDirectoryIdPath;
 

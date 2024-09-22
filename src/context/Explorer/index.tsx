@@ -7,7 +7,12 @@ import {
   useRef,
   useState,
 } from "react";
-import useUserContext, { Folder, PasswordItem } from "./../User";
+import useUserContext, {
+  Folder,
+  PasswordItem,
+  UserData,
+  UserV2Type,
+} from "./../User";
 import useNavigation, { Navigation } from "./Navigation";
 import useSingularOperations, {
   SingularOperations,
@@ -17,6 +22,7 @@ import useExplorerConfig, { ExplorerConfig } from "./ExplorerConfig";
 import useSelection, { Selection } from "./Selection";
 import { getItemByPath } from "@/lib/explorer-utils";
 import useStateCallback from "@/hooks/useStateCallback";
+import { deepCompare } from "@/lib/utils";
 
 export type Path = Array<string>;
 
@@ -52,8 +58,7 @@ export const ExplorerProvider = ({
   const [tagged, setTagged] = useState(userData?.tagged);
 
   const currentDirIdPathState = useStateCallback(DEFAULT_PATH);
-  const [currentDirectoryIdPath, setCurrentDirectoryIdPath] =
-    currentDirIdPathState;
+  const [currentDirectoryIdPath] = currentDirIdPathState;
 
   const updateOrGetByPath: UpdateOrGetByPathType = (path, newValue) => {
     if (path === undefined) {
@@ -148,17 +153,38 @@ export const ExplorerProvider = ({
 
   useEffect(() => {
     //For when user changes account or logs out.
-    setHomeDirectory(() => {
-      return userData?.directory;
+
+    if (!userData) {
+      setHomeDirectory(undefined);
+      setFavourites(undefined);
+      setTagged(undefined);
+    }
+
+    const getUpdatedOrIgnoredStateValue = <T extends keyof UserData>(
+      userDataKey: T,
+      currentValue: UserData[T] | undefined
+    ): UserData[T] | undefined => {
+      if (!userData) return undefined;
+      if (deepCompare(userData[userDataKey], currentValue)) {
+        return currentValue;
+      }
+      return structuredClone(userData[userDataKey]);
+    };
+
+    setHomeDirectory((prev) =>
+      getUpdatedOrIgnoredStateValue("directory", prev)
+    );
+    setFavourites((prev) => getUpdatedOrIgnoredStateValue("favourites", prev));
+    setTagged((prev) => {
+      return getUpdatedOrIgnoredStateValue("tagged", prev);
     });
-    setFavourites(userData?.favourites);
-    setTagged(userData?.tagged);
   }, [userData]);
 
   useEffect(() => {
     if (!homeDirectory || !favourites || !tagged) {
       return;
     }
+
     setUserProperty("userData", {
       directory: homeDirectory,
       favourites,

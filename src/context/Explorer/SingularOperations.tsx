@@ -1,6 +1,6 @@
 import Color from "@/pages/Main/Sidebar/colors";
 import { Path, UpdateOrGetByPathType } from ".";
-import { Folder, PasswordItem, SafeUserV1Type } from "../User";
+import { Folder, PasswordItem, SafeUserV2Type } from "../User";
 import {
   checkFolderByData,
   generateItemId,
@@ -23,7 +23,7 @@ export type SingularOperations = {
   setItemTag: (color: Color | undefined, path?: Path) => void;
 };
 
-type Tagged = SafeUserV1Type["userData"]["tagged"];
+type Tagged = SafeUserV2Type["userData"]["tagged"];
 
 const useSingularOperations = (
   currentDirectoryIdPath: Path,
