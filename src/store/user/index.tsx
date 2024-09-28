@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Folder, PasswordItem, User, UserData } from "./types";
+import { Folder, PasswordItem, User, UserData, UserV1, UserV2 } from "./types";
 import { produce } from "immer";
 
 type State = {
@@ -38,6 +38,42 @@ const getItemByPath = (
   }
 };
 
+export const getDataCompatibleUser = <T extends UserV1 | UserV2>(value: T) => {
+  const userVersion = value.version ?? 1;
+
+  // ================ ADJUSTMENTS FOR STR TO OBJ =====================
+  const handleTaggedSets = (user: T): T => {
+    const tagged = user.userData.tagged;
+    if (!tagged) return user;
+    const newTagged = Object.keys(tagged).reduce((acc, key) => {
+      const typedKey = key as keyof typeof tagged;
+      const originalVal: any = tagged[typedKey];
+      if (userVersion === 1 || Object.keys(originalVal).length === 0) {
+        acc[typedKey] = new Set();
+      } else if (userVersion === 2) {
+        acc[typedKey] = new Set(originalVal as Array<string> | Set<string>);
+      } else {
+        acc[typedKey] = new Set();
+      }
+      return acc;
+    }, {} as User["userData"]["tagged"]);
+    return { ...user, userData: { ...user.userData, tagged: newTagged } };
+  };
+
+  const updateVersion = (user: T): User => {
+    if (user.version) {
+      if (user.version === 2) {
+        return user;
+      }
+    }
+    return { ...user, version: 2 };
+  };
+
+  const tagHandledUser = handleTaggedSets(value);
+  const backwardsCompatibleUser = updateVersion(tagHandledUser);
+  return backwardsCompatibleUser as User;
+};
+
 export const checkIsFolder = (
   value: Folder | PasswordItem | undefined
 ): value is Folder => {
@@ -52,6 +88,7 @@ const useUserStore = create<State & Action>((set) => {
     userDirectory: null,
     userFavourites: null,
     userTagged: null,
+
     setUserInfo: (value: Omit<User, "userData"> | null) =>
       set({ userInfo: value }),
     setUserDirectory: (value: Folder | null) => set({ userDirectory: value }),
@@ -105,7 +142,7 @@ const useUserStore = create<State & Action>((set) => {
         })
       );
     },
-  } as State & Action;
+  } satisfies State & Action;
 });
 
 export default useUserStore;

@@ -1,6 +1,7 @@
 import useUserStore from "@/store/user";
 import { create } from "zustand";
 import { IdPath, NavigationPiece } from "./types";
+import useSelectionStore from "../selection";
 
 type State = {
   backStack: NavigationPiece[];
@@ -9,119 +10,134 @@ type State = {
 };
 
 type Action = {
-  push: (
-    navigationPiece: NavigationPiece,
-    selectionItemId?: string,
-    clearStack?: boolean
-  ) => void;
-  pop: (selectionItemId?: "_" | string) => void;
-  unpop: (selectionItemId?: "_" | string) => void;
+  push: (path: IdPath, selectionItemId?: string, clearStack?: boolean) => void;
+  pop: (selectionItemId?: string) => void;
+  unpop: (selectionItemId?: string) => void;
 };
 
 const DEFAULT_PATH: IdPath = [];
 
 const useNavigationStore = create<State & Action>((set) => {
+  const reset = () => {
+    set({
+      currentNavigationPiece: {
+        idPath: DEFAULT_PATH,
+        selectedItemIds: new Set<string>(),
+      },
+      backStack: [],
+      forwardStack: [],
+    } satisfies State);
+  };
+
+  const getSelectedItemIds = () => {
+    return structuredClone(useSelectionStore.getState().selectedItemIds);
+  };
+
+  const selectAfterNavigation = (selectedItemIds: Set<string>) => {
+    useSelectionStore.getState().reselectItems(Array.from(selectedItemIds));
+  };
+
   useUserStore.subscribe(({ userDirectory }) => {
     if (!userDirectory) {
-      set({
-        currentNavigationPiece: { idPath: DEFAULT_PATH },
-        backStack: [],
-        forwardStack: [],
-      });
+      reset();
     }
   });
 
   return {
-    currentNavigationPiece: { idPath: DEFAULT_PATH },
+    currentNavigationPiece: {
+      idPath: DEFAULT_PATH,
+      selectedItemIds: new Set<string>(),
+    },
     backStack: [],
     forwardStack: [],
-    push: (
-      navigationPiece: NavigationPiece,
-      selectionItemId?: string,
-      clearStack?: boolean
-    ) => {
+    push: (path: IdPath, selectionItemId?: string, clearStack?: boolean) => {
+      const selectedItemIds = getSelectedItemIds();
       set((state) => {
         const currentIdPath = [...state.currentNavigationPiece.idPath];
-        const sourceId = currentIdPath.pop() as string;
         const newState = {
           currentNavigationPiece: {
-            idPath: navigationPiece.idPath,
-            sourceId: navigationPiece.sourceId ?? sourceId,
+            idPath: path,
+            selectedItemIds: new Set<string>(
+              selectionItemId ? [selectionItemId] : []
+            ),
           },
           backStack: clearStack
             ? []
-            : [...state.backStack, state.currentNavigationPiece],
+            : [...state.backStack, { idPath: currentIdPath, selectedItemIds }],
           forwardStack: [],
         } satisfies Partial<State & Action>;
         return newState;
       });
-      if (selectionItemId) {
-        set((state) => {
-          console.log(
-            "find",
-            selectionItemId,
-            "in",
-            state.currentNavigationPiece
-          );
-          return {};
-        });
-      }
-    },
-    pop: (selectionItemId?: "_" | string) => {
       set((state) => {
-        if (state.backStack.length === 0) return {};
+        selectAfterNavigation(state.currentNavigationPiece.selectedItemIds);
+        return {};
+      });
+    },
+    pop: (selectionItemId?: string) => {
+      let isBackStackEmpty = false;
+      set((state) => {
+        isBackStackEmpty = state.backStack.length === 0;
+        if (isBackStackEmpty) return {};
+        const selectedItemIds = getSelectedItemIds();
         const backStackTemp = [...state.backStack];
         const lastNavPiece = backStackTemp.pop() as NavigationPiece;
         const newState = {
           backStack: [...backStackTemp],
-          currentNavigationPiece: lastNavPiece,
-          forwardStack: [state.currentNavigationPiece, ...state.forwardStack],
+          currentNavigationPiece: {
+            ...structuredClone(lastNavPiece),
+            ...{
+              selectedItemIds: new Set<string>(
+                selectionItemId ? [selectionItemId] : []
+              ),
+            },
+          },
+          forwardStack: [
+            ...state.forwardStack,
+            {
+              ...structuredClone(state.currentNavigationPiece),
+              selectedItemIds,
+            },
+          ],
         } satisfies Partial<State & Action>;
-        console.log("old", state, "new", newState);
         return newState;
       });
+      if (isBackStackEmpty) return;
       set((state) => {
-        selectionItemId =
-          selectionItemId === "_"
-            ? state.currentNavigationPiece.sourceId
-            : selectionItemId;
-        if (selectionItemId) {
-          // Select
-          console.log(
-            "find",
-            selectionItemId,
-            "in",
-            state.currentNavigationPiece
-          );
-        }
+        selectAfterNavigation(state.currentNavigationPiece.selectedItemIds);
         return {};
       });
     },
     unpop: (selectionItemId?: "_" | string) => {
+      let isForwardStackEmpty = false;
       set((state) => {
-        if (state.forwardStack.length === 0) return {};
-        const [nextNavPiece, ...forwardStackTemp] = [...state.forwardStack];
+        isForwardStackEmpty = state.forwardStack.length === 0;
+        if (isForwardStackEmpty) return {};
+        const selectedItemIds = getSelectedItemIds();
+        const forwardStackTemp = [...state.forwardStack];
+        const nextNavPiece = forwardStackTemp.pop() as NavigationPiece;
         const newState = {
-          backStack: [...state.backStack, state.currentNavigationPiece],
-          currentNavigationPiece: nextNavPiece,
+          backStack: [
+            ...state.backStack,
+            {
+              ...structuredClone(state.currentNavigationPiece),
+              selectedItemIds,
+            },
+          ],
+          currentNavigationPiece: {
+            ...structuredClone(nextNavPiece),
+            ...{
+              selectedItemIds: new Set<string>(
+                selectionItemId ? [selectionItemId] : []
+              ),
+            },
+          },
           forwardStack: [...forwardStackTemp],
         } satisfies Partial<State & Action>;
         return newState;
       });
+      if (isForwardStackEmpty) return;
       set((state) => {
-        selectionItemId =
-          selectionItemId === "_"
-            ? state.currentNavigationPiece.sourceId
-            : selectionItemId;
-        if (selectionItemId) {
-          // Select
-          console.log(
-            "find",
-            selectionItemId,
-            "in",
-            state.currentNavigationPiece
-          );
-        }
+        selectAfterNavigation(state.currentNavigationPiece.selectedItemIds);
         return {};
       });
     },

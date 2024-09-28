@@ -47,15 +47,13 @@ const useSelectionStore = create<State & Action>((set) => {
             selectedItemIds.add(item.id);
           }
         });
-        const size = selectedItemIds.size;
-        return { selectedItemIds };
+        return { selectedItemIds, selectionMode: true };
       }),
-    reselectItems: (itemIds: string[]) =>
+    reselectItems: (itemIds: string[], selectionMode?: boolean) =>
       set((state) => {
-        if (itemIds.length === 1) state.setSelectionMode(false);
         state.deselectAll();
-        state.selectItems(itemIds);
-        return {};
+        if (itemIds.length > 0) state.selectItems(itemIds);
+        return { selectionMode: selectionMode ?? itemIds.length > 1 };
       }),
     deslectItems: (itemIds: string[]) =>
       set((state) => {
