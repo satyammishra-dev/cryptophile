@@ -5,10 +5,10 @@ import React, { useEffect, useState } from "react";
 import Folder from "./Folder";
 import EmptyFolder from "./EmptyFolderPage";
 import PasswordItem from "./PasswordItem";
+import useNavigationStore from "@/store/navigation";
 
 const Body = () => {
   const {
-    navigation: { currentDirectoryIdPath, push },
     selection: {
       selectedItemIds,
       selectItemById,
@@ -21,6 +21,10 @@ const Body = () => {
     },
     root: homeDirectory,
   } = useExplorer();
+  const { idPath: currentDirectoryIdPath } = useNavigationStore(
+    (state) => state.currentNavigationPiece
+  );
+  const push = useNavigationStore((state) => state.push);
 
   const directory = homeDirectory
     ? getItemByPath(currentDirectoryIdPath, homeDirectory)
@@ -46,7 +50,7 @@ const Body = () => {
 
   const navigateToFolderContents = (id: string) => {
     if (!selectionMode)
-      push({ path: [...currentDirectoryIdPath, id], sourceId: id });
+      push({ idPath: [...currentDirectoryIdPath, id], sourceId: id });
   };
 
   //Select newly created item:

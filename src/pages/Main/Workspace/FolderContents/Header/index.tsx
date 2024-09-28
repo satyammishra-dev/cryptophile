@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import Toolbar from "./Toolbar";
 import useExplorer from "@/context/Explorer";
 import { NavigationProps } from "@/context/Explorer/Navigation";
+import useNavigationStore from "@/store/navigation";
+import { NavigationPiece } from "@/store/navigation/types";
 
 const BreadCrumb = ({
   idPath,
@@ -14,9 +16,9 @@ const BreadCrumb = ({
   idPath: string[];
   namePath: string[];
   push: (
-    path: NavigationProps,
-    clearStack?: boolean,
-    selectionItemId?: string
+    navigationPiece: NavigationPiece,
+    selectionItemId?: string,
+    clearStack?: boolean
   ) => void;
 }) => {
   return (
@@ -28,7 +30,7 @@ const BreadCrumb = ({
             className="font-bold text-xl px-1"
             key={itemId}
             onClick={() =>
-              push({ path: [...idPath].slice(0, idx + 1), sourceId: itemId })
+              push({ idPath: [...idPath].slice(0, idx + 1), sourceId: itemId })
             }
           >
             {namePath[idx]}{" "}
@@ -48,8 +50,10 @@ const BreadCrumb = ({
 const Header = () => {
   const [user] = useUserContext();
 
-  const { navigation } = useExplorer();
-  const currentDirIdPath = navigation.currentDirectoryIdPath;
+  const { push, pop, unpop, backStack, forwardStack, currentNavigationPiece } =
+    useNavigationStore();
+
+  const currentDirIdPath = currentNavigationPiece.idPath;
   const homeDirectory = user?.userData.directory;
 
   const [isBreadCrumbMode, setBreadCrumbMode] = useState(false);
@@ -81,19 +85,19 @@ const Header = () => {
           <Button
             variant="ghost"
             className=""
-            disabled={navigation.stack.length === 1}
+            disabled={backStack.length === 0}
             onClick={() => {
-              navigation.pop();
+              pop();
             }}
           >
             <i className="fa-solid fa-chevron-left text-xl"></i>
           </Button>
           <Button
             variant="ghost"
-            disabled={navigation.forwardStack.length === 0}
+            disabled={forwardStack.length === 0}
             className="mr-2"
             onClick={() => {
-              navigation.unpop();
+              unpop();
             }}
           >
             <i className="fa-solid fa-chevron-right text-xl"></i>
@@ -102,7 +106,7 @@ const Header = () => {
             <BreadCrumb
               namePath={directoryNamePath}
               idPath={currentDirIdPath}
-              push={navigation.push}
+              push={push}
             />
           ) : (
             <h1 className="font-bold text-2xl">
@@ -113,9 +117,7 @@ const Header = () => {
         <div className="flex items-center">
           <Button
             variant={currentDirIdPath.length === 1 ? "ghost" : "outline"}
-            onClick={() =>
-              navigation.push({ path: ["home"], sourceId: undefined })
-            }
+            onClick={() => push({ idPath: ["home"], sourceId: undefined })}
             className="mr-1 px-0 w-12"
           >
             <i className="fa-solid fa-home text-xl"></i>

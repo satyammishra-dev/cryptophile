@@ -90,19 +90,31 @@ type UserDataForStorage = Omit<SafeUserV2Type["userData"], "tagged"> & {
   tagged: ColorTagsForStorage;
 };
 
-export const INITIAL_USER_DATA_FOR_STORAGE = (): UserDataForStorage => {
+export const INITIAL_USER_DATA = (): SafeUserV2Type["userData"] => {
   const directory = INITIAL_DIRECTORY();
-  type ColorTags = {
-    [K in keyof SafeUserV2Type["userData"]["tagged"]]: Array<string>;
-  };
+  type ColorTags = SafeUserV2Type["userData"]["tagged"];
   const data = {
     directory,
     favourites: [],
     tagged: Object.keys(ColorMap).reduce<ColorTags>((acc, color) => {
-      acc[color as Color] = [];
+      acc[color as Color] = new Set();
       return acc;
     }, {} as ColorTags),
   };
+  return data;
+};
+
+export const INITIAL_USER_DATA_FOR_STORAGE = (): UserDataForStorage => {
+  const userData = INITIAL_USER_DATA();
+  type ColorTags = { [key in keyof typeof userData.tagged]: Array<string> };
+  const taggedSetsToArrays = Object.keys(ColorMap).reduce<ColorTags>(
+    (acc, color) => {
+      acc[color as Color] = [];
+      return acc;
+    },
+    {} as ColorTags
+  );
+  const data = { ...userData, tagged: taggedSetsToArrays };
   return data;
 };
 

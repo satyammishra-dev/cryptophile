@@ -8,9 +8,11 @@ import useGlobalNavigator from "@/context/GlobalNavigator";
 import {
   authenticateUserWithPassword,
   authenticateUserWithPrivateKey,
+  INITIAL_DIRECTORY,
 } from "@/lib/account-utils";
 import useUserContext from "@/context/User";
 import { safeParse } from "@/lib/utils";
+import useUserStore from "@/store/user";
 
 type ExistingUserProps = {
   userList: UserListItem[];
@@ -35,6 +37,9 @@ const ExistingUser = ({ userList }: ExistingUserProps) => {
 
   const [user, setUser] = useUserContext();
 
+  const setUserInfo = useUserStore((state) => state.setUserInfo);
+  const setUserData = useUserStore((state) => state.setUserData);
+
   const handleLogin = async (
     user: UserListItem | undefined,
     credential: string
@@ -57,6 +62,17 @@ const ExistingUser = ({ userList }: ExistingUserProps) => {
         credential
       );
     }
+
+    setUserInfo({
+      displayName: userDisplayName,
+      username: user.username,
+      usesPassword: user.authType === "1",
+      credential,
+      avatarHex: user.avatarHex,
+      version: 2 as const,
+    });
+
+    setUserData(safeParse(userData, null));
 
     setUser({
       displayName: userDisplayName,

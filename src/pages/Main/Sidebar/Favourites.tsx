@@ -3,6 +3,8 @@ import useExplorer from "@/context/Explorer";
 import { NavigationProps } from "@/context/Explorer/Navigation";
 import useUserContext, { Folder, PasswordItem } from "@/context/User";
 import { getItemByPath, parseIdPathString } from "@/lib/explorer-utils";
+import useNavigationStore from "@/store/navigation";
+import { IdPath, NavigationPiece } from "@/store/navigation/types";
 import React, { useEffect, useState } from "react";
 
 const FavouriteItem = ({
@@ -14,9 +16,9 @@ const FavouriteItem = ({
   item: Folder | PasswordItem;
   idPath: string[];
   push: (
-    navigationProps: NavigationProps,
-    clearStack?: boolean,
-    selectionItemId?: string
+    navigationPiece: NavigationPiece,
+    selectionItemId?: string,
+    clearStack?: boolean
   ) => void;
   selectSingleItemById: (id: string) => void;
 }) => {
@@ -26,7 +28,7 @@ const FavouriteItem = ({
     const idPathTemp = [...idPath];
     const itemId = idPathTemp.pop();
     if (!itemId) return;
-    push({ path: idPathTemp, sourceId: undefined }, false, itemId);
+    push({ idPath: idPathTemp }, itemId);
     // setIdToSelect(itemId);
   };
 
@@ -42,7 +44,7 @@ const FavouriteItem = ({
       className="w-full hover:bg-primary/5 flex items-center justify-start rounded-md py-1 px-2"
       onClick={() => {
         if ("contents" in item) {
-          push({ path: idPath, sourceId: undefined });
+          push({ idPath });
         } else {
           selectPasswordItem();
         }
@@ -65,8 +67,8 @@ const Favourites = () => {
   const {
     root,
     selection: { selectSingleItemById },
-    navigation: { push },
   } = useExplorer();
+  const push = useNavigationStore((state) => state.push);
   const favourites = user?.userData.favourites ?? ([] as string[]);
   return (
     <ul>
