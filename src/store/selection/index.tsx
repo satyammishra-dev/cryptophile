@@ -3,21 +3,33 @@ import useUserStore, { checkIsFolder } from "../user";
 import useNavigationStore from "../navigation";
 
 type State = {
+  selectionMode: boolean;
   selectedItemIds: Set<string>;
 };
 
 type Action = {
+  setSelectionMode: (value?: boolean) => void;
   selectItems: (itemIds: string[]) => void;
   reselectItems: (itemIds: string[]) => void;
   deslectItems: (itemIds: string[]) => void;
   selectAll: () => void;
-  deselectAll: () => void;
+  deselectAll: (selectionMode?: boolean) => void;
   checkItemSelected: (itemId: string) => boolean;
 };
 
 const useSelectionStore = create<State & Action>((set) => {
   return {
+    selectionMode: false,
     selectedItemIds: new Set<string>(),
+    setSelectionMode: (value?: boolean) => {
+      set((state) => {
+        value ??= !state.selectionMode;
+        return {
+          selectionMode: value,
+          ...(value ? {} : { selectedItemIds: new Set<string>() }),
+        };
+      });
+    },
     selectItems: (itemIds: string[]) =>
       set((state) => {
         const currentDirIdPath =
@@ -40,6 +52,7 @@ const useSelectionStore = create<State & Action>((set) => {
       }),
     reselectItems: (itemIds: string[]) =>
       set((state) => {
+        if (itemIds.length === 1) state.setSelectionMode(false);
         state.deselectAll();
         state.selectItems(itemIds);
         return {};
@@ -67,10 +80,13 @@ const useSelectionStore = create<State & Action>((set) => {
         const selectedItemIds = new Set(
           currentDir.contents.map((item) => item.id)
         );
-        return { selectedItemIds };
+        return { selectionMode: true, selectedItemIds };
       }),
-    deselectAll: () => {
-      set(() => ({ selectedItemIds: new Set() }));
+    deselectAll: (selectionMode?: boolean) => {
+      set(() => ({
+        selectionMode: selectionMode ?? false,
+        selectedItemIds: new Set(),
+      }));
     },
     checkItemSelected: (itemId: string) => {
       let isItemSelected = false;
