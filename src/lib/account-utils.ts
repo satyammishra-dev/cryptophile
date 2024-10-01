@@ -1,4 +1,4 @@
-import { Folder, SafeUserV2Type, UserV2Type } from "@/context/User";
+import { Folder, User, Color, ColorMap } from "@/store/user/types";
 import {
   arrayToHex,
   decrypt,
@@ -6,7 +6,6 @@ import {
   generateSHA256,
 } from "./cryptographic-utils";
 import { safeParse } from "./utils";
-import Color, { ColorMap } from "@/pages/Main/Sidebar/colors";
 
 const VERSION = "1" as const;
 
@@ -84,15 +83,15 @@ export const INITIAL_DIRECTORY = (): Folder => {
 };
 
 type ColorTagsForStorage = {
-  [K in keyof SafeUserV2Type["userData"]["tagged"]]: Array<string>;
+  [K in keyof User["userData"]["tagged"]]: Array<string>;
 };
-type UserDataForStorage = Omit<SafeUserV2Type["userData"], "tagged"> & {
+type UserDataForStorage = Omit<User["userData"], "tagged"> & {
   tagged: ColorTagsForStorage;
 };
 
-export const INITIAL_USER_DATA = (): SafeUserV2Type["userData"] => {
+export const INITIAL_USER_DATA = (): User["userData"] => {
   const directory = INITIAL_DIRECTORY();
-  type ColorTags = SafeUserV2Type["userData"]["tagged"];
+  type ColorTags = User["userData"]["tagged"];
   const data = {
     directory,
     favourites: [],

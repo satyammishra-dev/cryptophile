@@ -55,4 +55,6 @@ export type UserV1 = {
 export type UserV2 =
   | Omit<Exclude<UserV1, undefined>, "version"> & { version: 2 };
 
+export type UserAllVersions = UserV1 | UserV2;
+
 export type User = UserV2;

@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import { Folder, PasswordItem, User, UserData, UserV1, UserV2 } from "./types";
+import {
+  Folder,
+  PasswordItem,
+  User,
+  UserAllVersions,
+  UserData,
+  UserV1,
+  UserV2,
+} from "./types";
 import { produce } from "immer";
 
 type State = {
@@ -10,6 +18,7 @@ type State = {
 };
 
 type Action = {
+  initializeUser: (value: UserAllVersions | null) => void;
   setUserInfo: (value: Omit<User, "userData"> | null) => void;
   setUserDirectory: (value: Folder | null) => void;
   setUserFavourites: (value: UserData["favourites"] | null) => void;
@@ -27,7 +36,7 @@ const getItemByPath = (
 ): Folder | PasswordItem | undefined => {
   if (path.length === 0) return homeDirectory; // Root folder
 
-  let currentContents: (Folder | PasswordItem)[] = [homeDirectory];
+  let currentContents: (Folder | PasswordItem)[] = homeDirectory.contents;
 
   for (let i = 0; i < path.length; i++) {
     const currentItem = currentContents.find((item) => item.id === path[i]);
@@ -38,7 +47,9 @@ const getItemByPath = (
   }
 };
 
-export const getDataCompatibleUser = <T extends UserV1 | UserV2>(value: T) => {
+export const getDataCompatibleUser = <T extends UserV1 | UserV2>(
+  value: T
+): User => {
   const userVersion = value.version ?? 1;
 
   // ================ ADJUSTMENTS FOR STR TO OBJ =====================
@@ -89,6 +100,26 @@ const useUserStore = create<State & Action>((set) => {
     userFavourites: null,
     userTagged: null,
 
+    initializeUser: (value: UserAllVersions | null) => {
+      if (value !== null) {
+        value = getDataCompatibleUser(value) satisfies User;
+      } else {
+        set({
+          userInfo: null,
+          userDirectory: null,
+          userFavourites: null,
+          userTagged: null,
+        });
+        return;
+      }
+      const { userData, ...userInfo } = value;
+      set({
+        userInfo,
+        userDirectory: userData.directory,
+        userFavourites: userData.favourites,
+        userTagged: userData.tagged,
+      });
+    },
     setUserInfo: (value: Omit<User, "userData"> | null) =>
       set({ userInfo: value }),
     setUserDirectory: (value: Folder | null) => set({ userDirectory: value }),
@@ -100,26 +131,27 @@ const useUserStore = create<State & Action>((set) => {
       idPath: string[],
       value?: Folder | PasswordItem
     ): Folder | PasswordItem | undefined => {
-      let homeDirectory: Folder | undefined = undefined;
-      set((state) => {
-        homeDirectory = state.userDirectory ?? undefined;
-        return {};
-      });
-
-      if (!homeDirectory)
-        throw new Error("This option is not currently available.");
-
       if (!value) {
-        const currentItem = getItemByPath(idPath, homeDirectory);
-        if (!currentItem) return undefined;
-        return currentItem;
+        const homeDirectory = useUserStore.getState().userDirectory;
+        if (!homeDirectory) {
+          return undefined;
+        }
+        return getItemByPath(idPath, homeDirectory);
       }
 
       set(
         produce((state: State & Action) => {
+          if (idPath.length === 0) {
+            if (value.id !== state.userDirectory?.id)
+              throw new Error("This action is not possible.");
+            if (checkIsFolder(value)) {
+              state.userDirectory = value;
+            }
+            return;
+          }
           const targetItemId = idPath[idPath.length - 1];
-          homeDirectory = state.userDirectory ?? undefined;
-          let dir: Folder | undefined = homeDirectory;
+          const homeDirectory = state.userDirectory;
+          let dir: Folder | null = homeDirectory;
 
           for (let i = 0; i < idPath.length - 1; i++) {
             if (!dir) return;
@@ -141,6 +173,22 @@ const useUserStore = create<State & Action>((set) => {
           }
         })
       );
+      return undefined;
+
+      // let homeDirectory: Folder | undefined = undefined;
+      // set((state) => {
+      //   homeDirectory = state.userDirectory ?? undefined;
+      //   return {};
+      // });
+
+      // if (!homeDirectory)
+      //   throw new Error("This option is not currently available.");
+
+      // if (!value) {
+      //   const currentItem = getItemByPath(idPath, homeDirectory);
+      //   if (!currentItem) return undefined;
+      //   return currentItem;
+      // }
     },
   } satisfies State & Action;
 });

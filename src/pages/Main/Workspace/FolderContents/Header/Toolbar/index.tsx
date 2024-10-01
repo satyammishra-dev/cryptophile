@@ -4,26 +4,19 @@ import React, { useEffect, useRef, useState } from "react";
 import NewItemButton from "./NewItemButton";
 import ViewButtonGroup from "./ViewButtonGroup";
 import FilterButton from "./FilterButton";
-import useExplorer from "@/context/Explorer";
 import ItemOpsButtonGroup from "./ItemOpsButtonGroup";
+import useSelectionStore from "@/store/selection";
+import useNavigationStore from "@/store/navigation";
+import useUserStore from "@/store/user";
 
 const Toolbar = () => {
-  const viewModeState = useState(0);
-  const [viewMode, setViewMode] = viewModeState;
-  const {
-    selection: { selectionMode, setSelectionMode, deselectAll },
-    navigation: { currentDirectoryIdPath },
-    root,
-  } = useExplorer();
-  const isInitialRender = useRef(true);
+  const homeDirectory = useUserStore((state) => state.userDirectory);
 
-  useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-    } else {
-      setSelectionMode(false);
-    }
-  }, [currentDirectoryIdPath]);
+  const selectionMode = useSelectionStore((state) => state.selectionMode);
+  const setSelectionMode = useSelectionStore((state) => state.setSelectionMode);
+  const deselectAll = useSelectionStore((state) => state.deselectAll);
+
+  const viewModeState = useState(0);
 
   const handleSelectionModeToggle = () => {
     if (selectionMode) {
@@ -36,7 +29,7 @@ const Toolbar = () => {
   return (
     <div className="mt-4 flex items-center justify-between">
       <Input placeholder="Search" className="h-10 max-w-[300px] rounded-lg" />
-      {root && (
+      {homeDirectory && (
         <div className="flex items-center gap-4">
           <NewItemButton />
           <ViewButtonGroup viewModeState={viewModeState} />

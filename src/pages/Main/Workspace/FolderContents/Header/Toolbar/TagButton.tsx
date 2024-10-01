@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import useStateCallback from "@/hooks/useStateCallback";
-import Color, { ColorMap } from "@/pages/Main/Sidebar/colors";
+import { Color, ColorMap } from "@/store/user/types";
 import { ChevronsUpDown } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 

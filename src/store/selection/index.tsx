@@ -11,13 +11,13 @@ type Action = {
   setSelectionMode: (value?: boolean) => void;
   selectItems: (itemIds: string[]) => void;
   reselectItems: (itemIds: string[]) => void;
-  deslectItems: (itemIds: string[]) => void;
+  deselectItems: (itemIds: string[]) => void;
   selectAll: () => void;
   deselectAll: (selectionMode?: boolean) => void;
   checkItemSelected: (itemId: string) => boolean;
 };
 
-const useSelectionStore = create<State & Action>((set) => {
+const useSelectionStore = create<State & Action>()((set) => {
   return {
     selectionMode: false,
     selectedItemIds: new Set<string>(),
@@ -53,9 +53,11 @@ const useSelectionStore = create<State & Action>((set) => {
       set((state) => {
         state.deselectAll();
         if (itemIds.length > 0) state.selectItems(itemIds);
-        return { selectionMode: selectionMode ?? itemIds.length > 1 };
+        return {
+          selectionMode: selectionMode ?? itemIds.length > 1,
+        };
       }),
-    deslectItems: (itemIds: string[]) =>
+    deselectItems: (itemIds: string[]) =>
       set((state) => {
         const selectedItemIds = new Set(state.selectedItemIds);
         itemIds.forEach((itemId) => {

@@ -1,8 +1,8 @@
 import React from "react";
 
-import useUserContext, { Folder, UserV2Type } from "@/context/User";
-import useExplorer from "@/context/Explorer";
 import useNavigationStore from "@/store/navigation";
+import { Folder } from "@/store/user/types";
+import useUserStore from "@/store/user";
 
 type FolderProps = {
   folderData: Folder;
@@ -42,8 +42,10 @@ type FolderTableProps = {
 };
 
 const FolderTable = ({}: FolderTableProps) => {
-  const { navigation, root: homeDirectory } = useExplorer();
-  const currentDirIdPath = navigation.currentDirectoryIdPath;
+  const homeDirectory = useUserStore((state) => state.userDirectory);
+  const { idPath: currentDirIdPath } = useNavigationStore(
+    (state) => state.currentNavigationPiece
+  );
   const push = useNavigationStore((state) => state.push);
 
   return (
@@ -59,7 +61,7 @@ const FolderTable = ({}: FolderTableProps) => {
               currentDirIdPath[1] === item.id
             }
             onClick={() => {
-              push({ idPath: ["home", item.id] });
+              push([item.id]);
             }}
             key={item.id}
           />

@@ -1,68 +1,52 @@
-import { Button } from "@/components/ui/button";
-import useExplorer from "@/context/Explorer";
-import { getItemByPath } from "@/lib/explorer-utils";
 import React, { useEffect, useState } from "react";
 import Folder from "./Folder";
 import EmptyFolder from "./EmptyFolderPage";
 import PasswordItem from "./PasswordItem";
 import useNavigationStore from "@/store/navigation";
+import useSelectionStore from "@/store/selection";
+import useExplorerStore from "@/store/explorer";
+import useUserStore from "@/store/user";
 
 const Body = () => {
+  const { getOrUpdateItem } = useUserStore();
   const {
-    selection: {
-      selectedItemIds,
-      selectItemById,
-      selectSingleItemById,
-      deselectItemById,
-      selectionMode,
-    },
-    config: {
-      expandedPasswordViewState: [, setExpandedPasswordView],
-    },
-    root: homeDirectory,
-  } = useExplorer();
+    selectedItemIds,
+    selectItems,
+    reselectItems,
+    deselectItems,
+    selectionMode,
+  } = useSelectionStore();
+  const setPasswordEditorMode = useExplorerStore(
+    (state) => state.setPasswordEditorMode
+  );
   const { idPath: currentDirectoryIdPath } = useNavigationStore(
     (state) => state.currentNavigationPiece
   );
   const push = useNavigationStore((state) => state.push);
 
-  const directory = homeDirectory
-    ? getItemByPath(currentDirectoryIdPath, homeDirectory)
-    : undefined;
+  const directory = getOrUpdateItem(currentDirectoryIdPath);
 
   const handleItemClick = (id: string) => {
     if (selectionMode) {
       if (selectedItemIds.has(id)) {
-        deselectItemById(id);
+        deselectItems([id]);
       } else {
-        selectItemById(id);
+        selectItems([id]);
       }
     } else {
-      selectItemById(id);
+      reselectItems([id]);
     }
   };
 
   const handlePasswordDoubleClick = (id: string) => {
     if (selectionMode) return;
-    selectSingleItemById(id);
-    setExpandedPasswordView(true);
+    reselectItems([id]);
+    setPasswordEditorMode(true);
   };
 
   const navigateToFolderContents = (id: string) => {
-    if (!selectionMode)
-      push({ idPath: [...currentDirectoryIdPath, id], sourceId: id });
+    if (!selectionMode) push([...currentDirectoryIdPath, id]);
   };
-
-  //Select newly created item:
-  useEffect(() => {
-    if (
-      directory &&
-      "contents" in directory &&
-      directory.contents.length === 1
-    ) {
-      selectSingleItemById(directory.contents[0].id);
-    }
-  }, [directory]);
 
   return (
     <>

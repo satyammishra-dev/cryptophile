@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { SortOption, ViewOption } from "./types";
-import Color from "@/pages/Main/Sidebar/colors";
 import useUserStore from "../user";
+import { Color } from "../user/types";
 
 type State = {
   sort: SortOption | undefined;

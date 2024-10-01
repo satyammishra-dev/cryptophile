@@ -5,7 +5,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import Color, { ColorMap } from "@/pages/Main/Sidebar/colors";
+import { Color, ColorMap } from "@/store/user/types";
 import { ChevronsUpDown } from "lucide-react";
 import React, { useState } from "react";
 

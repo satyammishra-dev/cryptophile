@@ -161,8 +161,7 @@ const useOperationStore = create<Action>((set) => {
         idPaths.push(path);
       } else {
         const selectedItemPaths = getSelectedItemPaths();
-        if (!selectedItemPaths) throw new Error("No selection found.");
-        selectedItemPaths.forEach((path) => idPaths.push(path));
+        selectedItemPaths?.forEach((path) => idPaths.push(path));
       }
       const favourites = useUserStore.getState().userFavourites;
       if (!favourites) throw new Error("This operation is not available.");
@@ -213,7 +212,7 @@ const useOperationStore = create<Action>((set) => {
           throw new Error("This operation is not available.");
         const contents = structuredClone(currentDir.contents);
 
-        const newContents = contents.map((item) => {
+        const newContents = contents.map((item: Folder | PasswordItem) => {
           if (!selectedItemIds.has(item.id)) return item;
           const pathStr = [...currentDirIdPath, item.id].join("/");
           if (value) {
@@ -297,7 +296,8 @@ const useOperationStore = create<Action>((set) => {
           favouritedIdPathStrings: new Set<string>(),
           tagged: {},
         };
-        const idPathStr = `${baseIdPathStr}/${data.id}`;
+        const pathSeperator = baseIdPathStr.length > 0 ? "/" : "";
+        const idPathStr = `${baseIdPathStr}${pathSeperator}${data.id}`;
         if (favouriteSet.has(idPathStr)) {
           deletedItemMetadata.favouritedIdPathStrings.add(idPathStr);
           favouriteSet.delete(idPathStr);
@@ -305,7 +305,7 @@ const useOperationStore = create<Action>((set) => {
         const tag = checkTaggedByPathStr(idPathStr);
         if (tag) {
           deletedItemMetadata.tagged[tag] ??= new Set<string>();
-          deletedItemMetadata.tagged[tag].add(idPathStr);
+          deletedItemMetadata.tagged[tag]!.add(idPathStr);
           tagged[tag].delete(idPathStr);
         }
         if ("contents" in data) {
@@ -320,14 +320,14 @@ const useOperationStore = create<Action>((set) => {
             for (const key in tagged) {
               const tag = key as Color;
               deletedItemMetadata.tagged[tag] ??= new Set<string>();
-              deletedItemMetadata.tagged[tag].add(idPathStr);
+              deletedItemMetadata.tagged[tag]!.add(idPathStr);
             }
           });
         }
         return deletedItemMetadata;
       };
 
-      const newContents = contents.filter((item) => {
+      const newContents = contents.filter((item: Folder | PasswordItem) => {
         if (!itemIds.has(item.id)) return true;
         const data = structuredClone(item);
         deletionData.deletedItems.push({
@@ -353,8 +353,7 @@ const useOperationStore = create<Action>((set) => {
         idPaths.push(path);
       } else {
         const selectedItemPaths = getSelectedItemPaths();
-        if (!selectedItemPaths) throw new Error("No selection found.");
-        selectedItemPaths.forEach((path) => idPaths.push(path));
+        selectedItemPaths?.forEach((path) => idPaths.push(path));
       }
       const idPathStrs = idPaths.map((idPath) => idPath.join("/"));
       const tagged = useUserStore.getState().userTagged;
@@ -388,7 +387,7 @@ const useOperationStore = create<Action>((set) => {
           },
           key
         ) => {
-          if (acc.count ?? 0 < counter[key as Color]) {
+          if ((acc.count ?? 0) < counter[key as Color]) {
             acc.count = counter[key as Color];
             acc.color = key as Color;
           }
@@ -407,10 +406,8 @@ const useOperationStore = create<Action>((set) => {
       if (!tagged) throw new Error("This operation is not available.");
       const clonedTagged = structuredClone(tagged);
 
-      const generateNewTagged = (
-        pathStrs: string[],
-        value: Color | undefined
-      ) => {
+      const generateNewTagged = (paths: IdPath[], value: Color | undefined) => {
+        const pathStrs = paths.map((path) => path.join("/"));
         Object.keys(clonedTagged).forEach((key) => {
           const newSet = new Set(clonedTagged[key as Color]);
           pathStrs.forEach((pathStr) => newSet.delete(pathStr));
@@ -424,34 +421,44 @@ const useOperationStore = create<Action>((set) => {
         return clonedTagged;
       };
 
-      const pathStrs: string[] = [];
       if (path) {
         if (path.length === 0)
           throw new Error("The operation is not available on Home Directory.");
-        const item = useUserStore.getState().getOrUpdateItem(path);
+        const item = structuredClone(
+          useUserStore.getState().getOrUpdateItem(path)
+        );
         if (!item) throw new Error("Item could not be found.");
-        const pathStr = path.join("/");
-        pathStrs.push(pathStr);
-      } else {
-        const selectedItemIds = useSelectionStore.getState().selectedItemIds;
-        if (selectedItemIds.size === 0) throw new Error("No selection found.");
-
-        const currentDirIdPath = getCurrentDirIdPath();
-        const currentDir = useUserStore
-          .getState()
-          .getOrUpdateItem(currentDirIdPath);
-        if (!(currentDir && "contents" in currentDir))
-          throw new Error("This operation is not available.");
-
-        const currentDirPathStr = currentDirIdPath.join("/");
-        currentDir.contents.forEach((item) => {
-          if (!selectedItemIds.has(item.id)) return;
-          pathStrs.push(currentDirPathStr + "/" + item.id);
-        });
+        const newTagged = generateNewTagged([path], value);
+        useUserStore.getState().setUserTagged(newTagged);
+        useUserStore.getState().getOrUpdateItem(path, { ...item, tag: value });
+        return;
       }
 
-      const newTagged = generateNewTagged(pathStrs, value);
+      const paths: IdPath[] = [];
+      const selectedItemIds = useSelectionStore.getState().selectedItemIds;
+      if (selectedItemIds.size === 0) throw new Error("No selection found.");
+
+      const currentDirIdPath = getCurrentDirIdPath();
+      const currentDir = structuredClone(
+        useUserStore.getState().getOrUpdateItem(currentDirIdPath)
+      );
+      if (!(currentDir && "contents" in currentDir))
+        throw new Error("This operation is not available.");
+
+      const newContents = currentDir.contents.map(
+        (item: Folder | PasswordItem) => {
+          if (!selectedItemIds.has(item.id)) return item;
+          paths.push([...currentDirIdPath, item.id]);
+          return { ...item, tag: value };
+        }
+      );
+
+      const newTagged = generateNewTagged(paths, value);
       useUserStore.getState().setUserTagged(newTagged);
+      useUserStore.getState().getOrUpdateItem(currentDirIdPath, {
+        ...currentDir,
+        contents: newContents,
+      });
     },
     moveItems: (destination: IdPath, source?: IdPath) => {
       const destinationDir = structuredClone(
@@ -469,7 +476,8 @@ const useOperationStore = create<Action>((set) => {
         ? [source[source.length - 1]]
         : Array.from(useSelectionStore.getState().selectedItemIds);
       for (const sourceId in sourceIds) {
-        const sourcePathStr = `${sourceParentPathStr}/${sourceId}`;
+        const pathSeperator = sourceParentPathStr.length > 0 ? "/" : "";
+        const sourcePathStr = `${sourceParentPathStr}${pathSeperator}${sourceId}`;
         if (destinationPathStr.startsWith(sourcePathStr)) {
           throw new Error(
             "The destination directory is invalid for the operation."
@@ -502,8 +510,9 @@ const useOperationStore = create<Action>((set) => {
       ): ReproducedItem => {
         const id = generateItemId();
         const parentPathStr = parentPath.join("/");
-        const oldIdPathStr = `${parentPathStr}/${data.id}`;
-        const newIdPathStr = `${parentPathStr}/${id}`;
+        const pathSeperator = parentPathStr.length > 0 ? "/" : "";
+        const oldIdPathStr = `${parentPathStr}${pathSeperator}${data.id}`;
+        const newIdPathStr = `${parentPathStr}${pathSeperator}${id}`;
 
         const newFavouritedIdPathStrings = new Set<string>();
         if (favouritedIdPathStrings.has(oldIdPathStr)) {
@@ -514,7 +523,7 @@ const useOperationStore = create<Action>((set) => {
         Object.keys(tagged).forEach((key) => {
           const tag = key as Color;
           newTagged[tag] ??= new Set<string>();
-          newTagged[tag].add(newIdPathStr);
+          newTagged[tag]!.add(newIdPathStr);
         });
 
         const isFolder = checkIsFolder(data);
@@ -581,12 +590,10 @@ const useOperationStore = create<Action>((set) => {
         return data;
       });
 
-      useUserStore
-        .getState()
-        .getOrUpdateItem(destination, {
-          ...destinationDir,
-          contents: contentsToAdd,
-        });
+      useUserStore.getState().getOrUpdateItem(destination, {
+        ...destinationDir,
+        contents: contentsToAdd,
+      });
       useUserStore.getState().setUserFavourites(Array.from(favouriteSet));
       useUserStore.getState().setUserTagged(tagged);
     },
@@ -596,3 +603,5 @@ const useOperationStore = create<Action>((set) => {
     pasteItems: (copiedItemsData: string, path?: IdPath) => {},
   } satisfies Action;
 });
+
+export default useOperationStore;

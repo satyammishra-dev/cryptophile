@@ -1,55 +1,62 @@
 import React, { useEffect, useState } from "react";
 import FolderInfo from "./FolderInfo";
 import PasswordInfo from "./PasswordInfo";
-import useExplorer from "@/context/Explorer";
-import { getItemByPath } from "@/lib/explorer-utils";
-import { Folder, PasswordItem } from "@/context/User";
+import useNavigationStore from "@/store/navigation";
+import useSelectionStore from "@/store/selection";
+import useExplorerStore from "@/store/explorer";
+import useUserStore from "@/store/user";
+import { Folder, PasswordItem } from "@/store/user/types";
 
 const InfoPanel = ({}: {}) => {
-  const {
-    navigation: { currentDirectoryIdPath },
-    selection: { selectedItemIds, selectionMode },
-    config: {
-      expandedPasswordViewState: [expandedPasswordView],
-    },
-    root,
-  } = useExplorer();
+  const { idPath: currentDirectoryIdPath } = useNavigationStore(
+    (state) => state.currentNavigationPiece
+  );
+  const selectedItemIds = useSelectionStore((state) => state.selectedItemIds);
+  const passwordEditorMode = useExplorerStore(
+    (state) => state.passwordEditorMode
+  );
+  const { getOrUpdateItem } = useUserStore();
 
-  const [infoItemPath, setInfoItemPath] = useState<string[]>();
+  const [infoItemPath, setInfoItemPath] = useState<string[]>(
+    currentDirectoryIdPath
+  );
+  const [infoItem, setInfoItem] = useState<Folder | PasswordItem | undefined>();
+  getOrUpdateItem(infoItemPath);
 
   useEffect(() => {
-    if (selectionMode || selectedItemIds.size !== 1) {
+    if (selectedItemIds.size !== 1) {
       setInfoItemPath(currentDirectoryIdPath);
+      setInfoItem(getOrUpdateItem(currentDirectoryIdPath));
       return;
     }
     setInfoItemPath([
       ...currentDirectoryIdPath,
       Array.from(selectedItemIds)[0],
     ]);
+    setInfoItem(
+      getOrUpdateItem([
+        ...currentDirectoryIdPath,
+        Array.from(selectedItemIds)[0],
+      ])
+    );
   }, [selectedItemIds, currentDirectoryIdPath]);
-
-  const [infoItem, setInfoItem] = useState<Folder | PasswordItem>();
-  useEffect(() => {
-    if (!infoItemPath || !root) {
-      setInfoItem(undefined);
-      return;
-    }
-    setInfoItem(getItemByPath(infoItemPath, root));
-  }, [infoItemPath]);
 
   return (
     <div
       className={`min-w-[300px] w-[100%] ${
-        expandedPasswordView ? "" : "max-w-[400px] px-4 py-4"
+        passwordEditorMode ? "" : "max-w-[400px] px-4 py-4"
       } border-l border-l-border h-full`}
     >
       {infoItemPath &&
         infoItem &&
         ("contents" in infoItem ? (
-          <FolderInfo idPath={infoItemPath} folder={infoItem} />
+          <FolderInfo folder={infoItem} />
         ) : (
-          <PasswordInfo idPath={infoItemPath} passwordItem={infoItem} />
-        ))}
+          // null
+          <PasswordInfo passwordItem={infoItem} />
+        ))
+        // null
+      }
     </div>
   );
 };

@@ -1,6 +1,4 @@
-import useExplorer from "@/context/Explorer";
-import { type Folder as FolderType } from "@/context/User";
-import { ColorMap } from "@/pages/Main/Sidebar/colors";
+import { ColorMap, type Folder as FolderType } from "@/store/user/types";
 import React from "react";
 
 type FolderProps = {

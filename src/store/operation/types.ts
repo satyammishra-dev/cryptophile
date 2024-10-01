@@ -1,4 +1,4 @@
-import { Folder, PasswordItem } from "@/context/User";
+import { Folder, PasswordItem } from "@/store/user/types";
 import { IdPath } from "../navigation/types";
 import { Color } from "../user/types";
 

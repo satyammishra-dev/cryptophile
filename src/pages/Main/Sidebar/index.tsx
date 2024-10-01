@@ -1,10 +1,9 @@
-import useUserContext from "@/context/User";
 import React from "react";
 import UserOptions from "./UserOptions";
 import FolderTable from "./FolderTable";
-import Color, { ColorMap } from "./colors";
 import ColorTag from "./ColorTag";
 import Favourites from "./Favourites";
+import { Color, ColorMap } from "@/store/user/types";
 
 const Sidebar = () => {
   return (

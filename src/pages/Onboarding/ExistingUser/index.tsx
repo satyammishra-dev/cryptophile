@@ -2,15 +2,12 @@ import { Button } from "@/components/ui/button";
 import { UserListItem } from "@/hooks/useUserList";
 import React, { useState } from "react";
 import UserComboBox from "./UserComboBox";
-import { Input } from "@/components/ui/input";
 import CompoundInput from "@/components/ui/compound-input";
 import useGlobalNavigator from "@/context/GlobalNavigator";
 import {
   authenticateUserWithPassword,
   authenticateUserWithPrivateKey,
-  INITIAL_DIRECTORY,
 } from "@/lib/account-utils";
-import useUserContext from "@/context/User";
 import { safeParse } from "@/lib/utils";
 import useUserStore from "@/store/user";
 
@@ -35,10 +32,7 @@ const ExistingUser = ({ userList }: ExistingUserProps) => {
   const [credential, setCredential] = useState("");
   const [showCredential, setShowCredential] = useState(false);
 
-  const [user, setUser] = useUserContext();
-
-  const setUserInfo = useUserStore((state) => state.setUserInfo);
-  const setUserData = useUserStore((state) => state.setUserData);
+  const initializeUser = useUserStore((state) => state.initializeUser);
 
   const handleLogin = async (
     user: UserListItem | undefined,
@@ -63,18 +57,7 @@ const ExistingUser = ({ userList }: ExistingUserProps) => {
       );
     }
 
-    setUserInfo({
-      displayName: userDisplayName,
-      username: user.username,
-      usesPassword: user.authType === "1",
-      credential,
-      avatarHex: user.avatarHex,
-      version: 2 as const,
-    });
-
-    setUserData(safeParse(userData, null));
-
-    setUser({
+    initializeUser({
       displayName: userDisplayName,
       username: user.username,
       usesPassword: user.authType === "1",

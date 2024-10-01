@@ -85,11 +85,9 @@ const useNavigationStore = create<State & Action>((set) => {
           backStack: [...backStackTemp],
           currentNavigationPiece: {
             ...structuredClone(lastNavPiece),
-            ...{
-              selectedItemIds: new Set<string>(
-                selectionItemId ? [selectionItemId] : []
-              ),
-            },
+            ...(selectionItemId
+              ? { selectedItemIds: new Set([selectionItemId]) }
+              : {}),
           },
           forwardStack: [
             ...state.forwardStack,
@@ -125,11 +123,9 @@ const useNavigationStore = create<State & Action>((set) => {
           ],
           currentNavigationPiece: {
             ...structuredClone(nextNavPiece),
-            ...{
-              selectedItemIds: new Set<string>(
-                selectionItemId ? [selectionItemId] : []
-              ),
-            },
+            ...(selectionItemId
+              ? { selectedItemIds: new Set([selectionItemId]) }
+              : {}),
           },
           forwardStack: [...forwardStackTemp],
         } satisfies Partial<State & Action>;

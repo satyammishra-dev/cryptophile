@@ -1,5 +1,4 @@
-import useExplorer from "@/context/Explorer";
-import { type PasswordItem as PasswordItemType } from "@/context/User";
+import { type PasswordItem as PasswordItemType } from "@/store/user/types";
 import React from "react";
 
 type PasswordItemProps = {
