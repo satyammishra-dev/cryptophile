@@ -8,6 +8,7 @@ import ItemOpsButtonGroup from "./ItemOpsButtonGroup";
 import useSelectionStore from "@/store/selection";
 import useUserStore from "@/store/user";
 import useExplorerStore from "@/store/explorer";
+import Search from "./Search";
 
 const Toolbar = () => {
   const homeDirectory = useUserStore((state) => state.userDirectory);
@@ -75,14 +76,7 @@ const Toolbar = () => {
           <ViewButtonGroup viewModeState={viewModeState} />
         </div>
       )}
-      {toolbarWidth > 950 ? (
-        <Input placeholder="Search" className="h-10 max-w-[300px] rounded-lg" />
-      ) : (
-        <Button variant={"secondary"}>
-          <i className="fa-regular fa-search mr-2"></i>
-          Search
-        </Button>
-      )}
+      <Search toolbarWidth={toolbarWidth} />
     </div>
   );
 };

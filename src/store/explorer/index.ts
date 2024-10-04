@@ -8,6 +8,7 @@ type State = {
   filter: FilterOptions;
   view: ViewOption;
   passwordEditorMode: boolean;
+  propertiesPanelVisibility: boolean;
 };
 
 type Action = {
@@ -15,6 +16,7 @@ type Action = {
   setFilter: (value: FilterOptions) => void;
   setView: (value: ViewOption) => void;
   setPasswordEditorMode: (value?: boolean) => void;
+  setPropertiesPanelVisibility: (value?: boolean) => void;
 };
 
 const DEFAULT_STATE = {
@@ -35,6 +37,7 @@ const DEFAULT_STATE = {
   },
   view: "GRID",
   passwordEditorMode: false,
+  propertiesPanelVisibility: true,
 } satisfies State;
 
 const useExplorerStore = create<State & Action>((set) => {
@@ -51,12 +54,17 @@ const useExplorerStore = create<State & Action>((set) => {
     filter: DEFAULT_STATE.filter,
     view: DEFAULT_STATE.view,
     passwordEditorMode: DEFAULT_STATE.passwordEditorMode,
+    propertiesPanelVisibility: DEFAULT_STATE.propertiesPanelVisibility,
     setSort: (value) => set({ sort: value }),
     setFilter: (value) => set({ filter: value }),
     setView: (value) => set({ view: value }),
     setPasswordEditorMode: (value?: boolean) =>
       set((state) => ({
         passwordEditorMode: value ?? !state.passwordEditorMode,
+      })),
+    setPropertiesPanelVisibility: (value?: boolean) =>
+      set((state) => ({
+        propertiesPanelVisibility: value ?? !state.propertiesPanelVisibility,
       })),
   } satisfies State & Action;
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import FolderInfo from "./FolderInfo";
 import PasswordInfo from "./PasswordInfo";
 import useNavigationStore from "@/store/navigation";
@@ -7,6 +7,7 @@ import useExplorerStore from "@/store/explorer";
 import useUserStore from "@/store/user";
 import { Folder, PasswordItem } from "@/store/user/types";
 import { Button } from "@/components/ui/button";
+import autoAnimate from "@formkit/auto-animate";
 
 const InfoPanel = ({}: {}) => {
   const { idPath: currentDirectoryIdPath } = useNavigationStore(
@@ -15,6 +16,12 @@ const InfoPanel = ({}: {}) => {
   const selectedItemIds = useSelectionStore((state) => state.selectedItemIds);
   const passwordEditorMode = useExplorerStore(
     (state) => state.passwordEditorMode
+  );
+  const propertiesPanelVisibility = useExplorerStore(
+    (state) => state.propertiesPanelVisibility
+  );
+  const setPropertiesPanelVisibility = useExplorerStore(
+    (state) => state.setPropertiesPanelVisibility
   );
   const { getOrUpdateItem } = useUserStore();
 
@@ -42,21 +49,27 @@ const InfoPanel = ({}: {}) => {
     );
   }, [selectedItemIds, currentDirectoryIdPath]);
 
+  const thisRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    thisRef.current && autoAnimate(thisRef.current);
+  }, [thisRef]);
+
   return (
     <div
-      className={`min-w-[300px] w-[100%] ${
+      className={`${
+        propertiesPanelVisibility
+          ? "min-w-[300px] w-full"
+          : passwordEditorMode
+          ? "w-full"
+          : "w-20"
+      } ${
         passwordEditorMode ? "" : "max-w-[400px] px-4 py-4"
-      } border-l border-l-border h-full relative`}
+      } shrink-0 border-l border-l-border h-full relative transition-all duration-500`}
+      ref={thisRef}
     >
-      <Button
-        variant={"outline"}
-        className="absolute top-4 left-4 h-10 w-10 rounded-full"
-        onClick={() => {}}
-      >
-        <i className="fa-regular fa-chevron-right"></i>
-      </Button>
       {
-        infoItemPath &&
+        (propertiesPanelVisibility || passwordEditorMode) &&
+          infoItemPath &&
           infoItem &&
           ("contents" in infoItem ? (
             <FolderInfo folder={infoItem} />
@@ -66,6 +79,21 @@ const InfoPanel = ({}: {}) => {
           ))
         // null
       }
+      {!passwordEditorMode && (
+        <Button
+          variant={"outline"}
+          className="absolute top-4 left-5 h-10 w-10 rounded-full z-30"
+          onClick={() => {
+            setPropertiesPanelVisibility();
+          }}
+        >
+          <i
+            className={`fa-regular fa-chevron-right ${
+              propertiesPanelVisibility ? "" : "rotate-180"
+            } transition`}
+          ></i>
+        </Button>
+      )}
     </div>
   );
 };

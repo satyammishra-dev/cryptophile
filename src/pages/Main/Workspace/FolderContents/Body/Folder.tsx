@@ -15,15 +15,15 @@ const Folder = ({
 }: FolderProps) => {
   return (
     <button
-      {...props}
       className={`relative flex flex-col items-center rounded-lg p-3 gap-2 border ${
         isSelected
           ? "bg-secondary hover:bg-secondary border-border"
           : "hover:bg-secondary/80 border-transparent"
-      } w-32 ${props.className}`}
+      } w-32 active:scale-95 transition ${props.className}`}
       onClick={(evt) => {
         props?.onClick?.(evt);
       }}
+      {...props}
     >
       {folder.isFavourite && (
         <i
@@ -31,14 +31,6 @@ const Folder = ({
           style={{ color: folder.tag ? `rgb(${ColorMap[folder.tag]})` : "" }}
         ></i>
       )}
-      {/*
-      folder.tag && (
-        <div
-          className="h-2 w-2 rounded-full absolute top-6 right-"
-          style={{ background: `rgb(${ColorMap[folder.tag]})` }}
-        ></div>
-      )
-      */}
       {showSelectCheckbox &&
         (isSelected ? (
           <i className="fa-solid fa-check-square absolute top-2 left-2"></i>

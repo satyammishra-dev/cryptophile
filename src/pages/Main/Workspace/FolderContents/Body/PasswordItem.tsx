@@ -18,18 +18,15 @@ const PasswordItem = ({
 }: PasswordItemProps) => {
   return (
     <button
-      {...props}
       className={`relative flex flex-col items-center rounded-lg p-3 gap-2 border ${
         isSelected
           ? "bg-secondary hover:bg-secondary border-border"
           : "hover:bg-secondary/80 border-transparent"
-      } w-32 ${props.className}`}
+      } w-32 active:scale-95 transition ${props.className}`}
       onClick={(evt) => {
         props?.onClick?.(evt);
       }}
-      onDoubleClick={(evt) => {
-        props?.onDoubleClick?.(evt);
-      }}
+      {...props}
     >
       {passwordItem.isFavourite && (
         <i

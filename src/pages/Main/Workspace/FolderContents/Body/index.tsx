@@ -6,6 +6,13 @@ import useNavigationStore from "@/store/navigation";
 import useSelectionStore from "@/store/selection";
 import useExplorerStore from "@/store/explorer";
 import useUserStore from "@/store/user";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 const Body = () => {
   const { getOrUpdateItem } = useUserStore();
@@ -25,6 +32,8 @@ const Body = () => {
   const push = useNavigationStore((state) => state.push);
 
   const directory = getOrUpdateItem(currentDirectoryIdPath);
+
+  const [isItemContextMenu, setItemContextMenu] = useState(false);
 
   const handleItemClick = (id: string) => {
     if (selectionMode) {
@@ -55,31 +64,68 @@ const Body = () => {
           directory.contents.length === 0 ? (
             <EmptyFolder />
           ) : (
-            <div className="flex flex-col flex-1 items-start justify-start">
-              <div className="flex flex-wrap gap-1 p-4 select-none">
-                {directory.contents.map((item) => {
-                  return "contents" in item ? (
-                    <Folder
-                      folder={item}
-                      key={item.id}
-                      isSelected={selectedItemIds.has(item.id)}
-                      showSelectCheckbox={selectionMode}
-                      onClick={() => handleItemClick(item.id)}
-                      onDoubleClick={() => navigateToFolderContents(item.id)}
-                    />
-                  ) : (
-                    <PasswordItem
-                      passwordItem={item}
-                      key={item.id}
-                      isSelected={selectedItemIds.has(item.id)}
-                      showSelectCheckbox={selectionMode}
-                      onClick={() => handleItemClick(item.id)}
-                      onDoubleClick={() => handlePasswordDoubleClick(item.id)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
+            <ContextMenu>
+              <ContextMenuTrigger
+                className="flex flex-col flex-1 items-start justify-start"
+                onContextMenu={(evt) => {
+                  const target = evt.target;
+                  if (!(target as HTMLElement).closest("button")) {
+                    setItemContextMenu(false);
+                  }
+                }}
+              >
+                <div className="flex flex-wrap gap-1 p-4 select-none">
+                  {directory.contents.map((item) => {
+                    return "contents" in item ? (
+                      <Folder
+                        folder={item}
+                        key={item.id}
+                        isSelected={selectedItemIds.has(item.id)}
+                        showSelectCheckbox={selectionMode}
+                        onClick={() => handleItemClick(item.id)}
+                        onDoubleClick={() => navigateToFolderContents(item.id)}
+                        onContextMenu={() => {
+                          if (!selectedItemIds.has(item.id)) {
+                            reselectItems([item.id]);
+                          }
+                          setItemContextMenu(true);
+                        }}
+                      />
+                    ) : (
+                      <PasswordItem
+                        passwordItem={item}
+                        key={item.id}
+                        isSelected={selectedItemIds.has(item.id)}
+                        showSelectCheckbox={selectionMode}
+                        onClick={() => handleItemClick(item.id)}
+                        onDoubleClick={() => handlePasswordDoubleClick(item.id)}
+                        onContextMenu={() => {
+                          if (!selectedItemIds.has(item.id)) {
+                            reselectItems([item.id]);
+                          }
+                          setItemContextMenu(true);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                {isItemContextMenu ? (
+                  <>
+                    {selectedItemIds.size === 1 && (
+                      <ContextMenuItem>Rename</ContextMenuItem>
+                    )}
+                    <ContextMenuItem>Mark as Favourite</ContextMenuItem>
+                    <ContextMenuItem>Tag</ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem>Delete</ContextMenuItem>
+                  </>
+                ) : (
+                  <ContextMenuItem>Create New</ContextMenuItem>
+                )}
+              </ContextMenuContent>
+            </ContextMenu>
           )
         ) : (
           <div>Invalid Location</div>
