@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import NewItemButton from "./NewItemButton";
 import ViewButtonGroup from "./ViewButtonGroup";
 import FilterButton from "./FilterButton";
 import ItemOpsButtonGroup from "./ItemOpsButtonGroup";
 import useSelectionStore from "@/store/selection";
-import useNavigationStore from "@/store/navigation";
 import useUserStore from "@/store/user";
+import useExplorerStore from "@/store/explorer";
 
 const Toolbar = () => {
   const homeDirectory = useUserStore((state) => state.userDirectory);
@@ -15,6 +15,8 @@ const Toolbar = () => {
   const selectionMode = useSelectionStore((state) => state.selectionMode);
   const setSelectionMode = useSelectionStore((state) => state.setSelectionMode);
   const deselectAll = useSelectionStore((state) => state.deselectAll);
+  const filter = useExplorerStore((state) => state.filter);
+  const setFilter = useExplorerStore((state) => state.setFilter);
 
   const viewModeState = useState(0);
 
@@ -26,19 +28,31 @@ const Toolbar = () => {
       setSelectionMode(true);
     }
   };
+
+  const [toolbarWidth, setToolbarWidth] = useState(0);
+  const obs = useMemo(() => {
+    return new ResizeObserver((entries) => {
+      setToolbarWidth(entries[0].borderBoxSize[0].inlineSize);
+    });
+  }, []);
+
+  const thisRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!thisRef.current) return;
+    const toolbar = thisRef.current;
+    obs.observe(toolbar);
+
+    return () => {
+      obs.unobserve(toolbar);
+    };
+  }, [thisRef]);
+
   return (
-    <div className="mt-4 flex items-center justify-between">
-      <Input placeholder="Search" className="h-10 max-w-[300px] rounded-lg" />
+    <div className="mt-4 flex items-center justify-between" ref={thisRef}>
       {homeDirectory && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <NewItemButton />
-          <ViewButtonGroup viewModeState={viewModeState} />
-          <div className="flex items-center gap-1">
-            <FilterButton />
-            <Button size={"sm"} variant={"outline"}>
-              <i className="text-base fa-regular fa-arrow-down-arrow-up"></i>
-            </Button>
-          </div>
           <div className="flex items-center gap-1">
             <Button
               size={"sm"}
@@ -49,7 +63,25 @@ const Toolbar = () => {
             </Button>
           </div>
           <ItemOpsButtonGroup />
+          <div className="flex items-center gap-1">
+            <FilterButton
+              filterOptions={filter}
+              onChange={(value) => setFilter(value)}
+            />
+            <Button size={"sm"} variant={"outline"}>
+              <i className="text-base fa-regular fa-arrow-down-arrow-up"></i>
+            </Button>
+          </div>
+          <ViewButtonGroup viewModeState={viewModeState} />
         </div>
+      )}
+      {toolbarWidth > 950 ? (
+        <Input placeholder="Search" className="h-10 max-w-[300px] rounded-lg" />
+      ) : (
+        <Button variant={"secondary"}>
+          <i className="fa-regular fa-search mr-2"></i>
+          Search
+        </Button>
       )}
     </div>
   );

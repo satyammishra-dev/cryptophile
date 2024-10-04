@@ -2,7 +2,7 @@ import React from "react";
 
 import useNavigationStore from "@/store/navigation";
 import { Folder } from "@/store/user/types";
-import useUserStore from "@/store/user";
+import useUserStore, { checkIsFolder } from "@/store/user";
 
 type FolderProps = {
   folderData: Folder;
@@ -29,10 +29,10 @@ const FolderItem = ({
         ></i>
         <span>{folderData.title}</span>
       </div>
-      <div className="flex items-center gap-2 mr-1 pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:opacity-100">
+      {/* <div className="flex items-center gap-2 mr-1 pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:opacity-100">
         <i className="text-sm fa-regular fa-pen text-muted-foreground hover:text-foreground "></i>
         <i className="text-sm fa-regular fa-trash text-muted-foreground hover:text-destructive "></i>
-      </div>
+      </div> */}
     </button>
   );
 };
@@ -48,25 +48,30 @@ const FolderTable = ({}: FolderTableProps) => {
   );
   const push = useNavigationStore((state) => state.push);
 
+  const folders = homeDirectory?.contents.filter((item) => checkIsFolder(item));
+
   return (
     <>
-      {homeDirectory?.contents.map((item) => {
-        if (!("contents" in item)) return;
-        return (
-          <FolderItem
-            folderData={item}
-            isActive={
-              currentDirIdPath !== undefined &&
-              currentDirIdPath.length > 0 &&
-              currentDirIdPath[1] === item.id
-            }
-            onClick={() => {
-              push([item.id]);
-            }}
-            key={item.id}
-          />
-        );
-      })}
+      {folders && folders.length > 0 ? (
+        folders.map((folder) => {
+          return (
+            <FolderItem
+              folderData={folder as Folder}
+              isActive={currentDirIdPath?.[1] === folder.id}
+              onClick={() => {
+                push([folder.id]);
+              }}
+              key={folder.id}
+            />
+          );
+        })
+      ) : (
+        <div className="bg-foreground/5 rounded-md px-3 py-3 text-center mt-2">
+          <span className="text-muted-foreground font-normal">
+            Folders appear here.
+          </span>
+        </div>
+      )}
     </>
   );
 };

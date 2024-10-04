@@ -26,7 +26,10 @@ const Folder = ({
       }}
     >
       {folder.isFavourite && (
-        <i className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"></i>
+        <i
+          className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"
+          style={{ color: folder.tag ? `rgb(${ColorMap[folder.tag]})` : "" }}
+        ></i>
       )}
       {/*
       folder.tag && (

@@ -11,10 +11,11 @@ const ItemOpsButtonGroup = () => {
     useOperationStore();
 
   const noSelection = selectedItemIds.size === 0;
+
   const isFavouriteByMajority = checkFavourites();
   const itemsTagByMajority = getItemsTag();
-
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     const keyDownHandler = (evt: KeyboardEvent) => {
       const { key, shiftKey, ctrlKey, altKey, metaKey } = evt;

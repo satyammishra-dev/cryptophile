@@ -48,10 +48,7 @@ const TagButton = ({
           size={"sm"}
           variant={"outline"}
           style={{
-            background: selectedColor
-              ? `rgb(${ColorMap[selectedColor]})`
-              : undefined,
-            color: selectedColor ? "white" : undefined,
+            color: selectedColor ? `rgba(${ColorMap[selectedColor]})` : "",
           }}
         >
           <i
@@ -59,11 +56,7 @@ const TagButton = ({
               selectedColor ? "fa-solid" : "fa-regular"
             } fa-tag`}
           ></i>
-          <ChevronsUpDown
-            className={`h-5 ml-2 -mr-2 text-muted-foreground ${
-              selectedColor ? "text-white/80" : "text-black/50"
-            }`}
-          />
+          <ChevronsUpDown className={`h-5 ml-2 -mr-2 text-muted-foreground`} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

@@ -1,4 +1,7 @@
-import { type PasswordItem as PasswordItemType } from "@/store/user/types";
+import {
+  ColorMap,
+  type PasswordItem as PasswordItemType,
+} from "@/store/user/types";
 import React from "react";
 
 type PasswordItemProps = {
@@ -29,7 +32,12 @@ const PasswordItem = ({
       }}
     >
       {passwordItem.isFavourite && (
-        <i className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"></i>
+        <i
+          className="fa-solid fa-circle-star absolute top-2 right-4 text-primary text-sm"
+          style={{
+            color: passwordItem.tag ? `rgb(${ColorMap[passwordItem.tag]})` : "",
+          }}
+        ></i>
       )}
       {showSelectCheckbox &&
         (isSelected ? (
@@ -37,7 +45,12 @@ const PasswordItem = ({
         ) : (
           <i className="fa-regular fa-square absolute top-2 left-2"></i>
         ))}
-      <i className="fa-solid fa-key text-6xl"></i>
+      <i
+        className="fa-solid fa-key text-6xl"
+        style={{
+          color: passwordItem.tag ? `rgb(${ColorMap[passwordItem.tag]})` : "",
+        }}
+      ></i>
       <span>{passwordItem.title}</span>
     </button>
   );

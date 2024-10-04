@@ -6,6 +6,7 @@ import useSelectionStore from "@/store/selection";
 import useExplorerStore from "@/store/explorer";
 import useUserStore from "@/store/user";
 import { Folder, PasswordItem } from "@/store/user/types";
+import { Button } from "@/components/ui/button";
 
 const InfoPanel = ({}: {}) => {
   const { idPath: currentDirectoryIdPath } = useNavigationStore(
@@ -45,16 +46,24 @@ const InfoPanel = ({}: {}) => {
     <div
       className={`min-w-[300px] w-[100%] ${
         passwordEditorMode ? "" : "max-w-[400px] px-4 py-4"
-      } border-l border-l-border h-full`}
+      } border-l border-l-border h-full relative`}
     >
-      {infoItemPath &&
-        infoItem &&
-        ("contents" in infoItem ? (
-          <FolderInfo folder={infoItem} />
-        ) : (
-          // null
-          <PasswordInfo passwordItem={infoItem} />
-        ))
+      <Button
+        variant={"outline"}
+        className="absolute top-4 left-4 h-10 w-10 rounded-full"
+        onClick={() => {}}
+      >
+        <i className="fa-regular fa-chevron-right"></i>
+      </Button>
+      {
+        infoItemPath &&
+          infoItem &&
+          ("contents" in infoItem ? (
+            <FolderInfo folder={infoItem} />
+          ) : (
+            // null
+            <PasswordInfo passwordItem={infoItem} />
+          ))
         // null
       }
     </div>
