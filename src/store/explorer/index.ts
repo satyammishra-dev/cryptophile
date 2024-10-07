@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { FilterOptions, SortOption, ViewOption } from "./types";
 import useUserStore from "../user";
-import { Color } from "../user/types";
+import { Color, Folder, PasswordItem } from "../user/types";
+import useSelectionStore from "../selection";
+import useNavigationStore from "../navigation";
 
 type State = {
   sort: SortOption | undefined;
@@ -19,7 +21,7 @@ type Action = {
   setPropertiesPanelVisibility: (value?: boolean) => void;
 };
 
-const DEFAULT_STATE = {
+export const DEFAULT_STATE = {
   sort: undefined,
   filter: {
     favourites: {
@@ -40,6 +42,42 @@ const DEFAULT_STATE = {
   propertiesPanelVisibility: true,
 } satisfies State;
 
+export const filterContents = (
+  contents: (Folder | PasswordItem)[],
+  filterOptions: FilterOptions
+) => {
+  type BooleanRecords = { [key: string]: boolean };
+  const checkAllKeys = <T extends BooleanRecords>(
+    obj: T,
+    compareWith?: boolean
+  ) => {
+    return Object.keys(obj).every((key) => obj[key] === (compareWith ?? true));
+  };
+  const favourites = filterOptions.favourites;
+  const tags = filterOptions.tags;
+  const isFavouriteFilterDisabled =
+    checkAllKeys(favourites) || checkAllKeys(favourites, false);
+  const isTagFilterDisabled = checkAllKeys(tags) || checkAllKeys(tags, false);
+
+  const passesFavouriteFilter = (item: Folder | PasswordItem) => {
+    if (isFavouriteFilterDisabled) return true;
+    if (favourites.favourited) return item.isFavourite;
+    if (favourites.unfavourited) return !item.isFavourite;
+    return false;
+  };
+
+  const passesTagFilter = (item: Folder | PasswordItem) => {
+    if (isTagFilterDisabled) return true;
+    const itemTag = item.tag;
+    if (!itemTag) return tags.none;
+    return tags[itemTag];
+  };
+
+  return contents.filter(
+    (item) => passesFavouriteFilter(item) && passesTagFilter(item)
+  );
+};
+
 const useExplorerStore = create<State & Action>((set) => {
   const reset = () => {
     set(DEFAULT_STATE);
@@ -49,6 +87,12 @@ const useExplorerStore = create<State & Action>((set) => {
     if (!state.userDirectory) reset();
   });
 
+  useNavigationStore.subscribe((state) => {
+    set({
+      filter: DEFAULT_STATE.filter,
+    });
+  });
+
   return {
     sort: DEFAULT_STATE.sort,
     filter: DEFAULT_STATE.filter,
@@ -56,7 +100,10 @@ const useExplorerStore = create<State & Action>((set) => {
     passwordEditorMode: DEFAULT_STATE.passwordEditorMode,
     propertiesPanelVisibility: DEFAULT_STATE.propertiesPanelVisibility,
     setSort: (value) => set({ sort: value }),
-    setFilter: (value) => set({ filter: value }),
+    setFilter: (value) => {
+      set({ filter: value });
+      useSelectionStore.getState().deselectAll();
+    },
     setView: (value) => set({ view: value }),
     setPasswordEditorMode: (value?: boolean) =>
       set((state) => ({

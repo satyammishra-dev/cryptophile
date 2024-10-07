@@ -93,7 +93,8 @@ const useOperationStore = create<Action>((set) => {
         id,
         title: data.title ?? "New Password",
         description: data.description ?? "Password",
-        username: data.username ?? "",
+        type: "UNKNOWN",
+        userId: data.userId ?? "",
         password: data.password ?? "",
         created: new Date(),
         lastModified: new Date(),
@@ -138,10 +139,9 @@ const useOperationStore = create<Action>((set) => {
           id: existingData.id,
           title: data.title ?? existingData.id,
           description: data.description ?? existingData.description,
-          username:
-            "username" in data
-              ? (data.username as string)
-              : existingData.username,
+          type: "UNKNOWN",
+          userId:
+            "userId" in data ? (data.userId as string) : existingData.userId,
           password:
             "password" in data
               ? (data.password as string)

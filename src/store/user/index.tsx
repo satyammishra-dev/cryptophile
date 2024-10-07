@@ -9,6 +9,7 @@ import {
   UserV2,
 } from "./types";
 import { produce } from "immer";
+import { getDataCompatibleUser } from "./utils";
 
 type State = {
   userInfo: Omit<User, "userData"> | null;
@@ -45,44 +46,6 @@ const getItemByPath = (
     if (!("contents" in currentItem)) return; // Not a folder, can't traverse further
     currentContents = [...currentItem.contents]; // Move deeper into the folder structure
   }
-};
-
-export const getDataCompatibleUser = <T extends UserV1 | UserV2>(
-  value: T
-): User => {
-  const userVersion = value.version ?? 1;
-
-  // ================ ADJUSTMENTS FOR STR TO OBJ =====================
-  const handleTaggedSets = (user: T): T => {
-    const tagged = user.userData.tagged;
-    if (!tagged) return user;
-    const newTagged = Object.keys(tagged).reduce((acc, key) => {
-      const typedKey = key as keyof typeof tagged;
-      const originalVal: any = tagged[typedKey];
-      if (userVersion === 1 || Object.keys(originalVal).length === 0) {
-        acc[typedKey] = new Set();
-      } else if (userVersion === 2) {
-        acc[typedKey] = new Set(originalVal as Array<string> | Set<string>);
-      } else {
-        acc[typedKey] = new Set();
-      }
-      return acc;
-    }, {} as User["userData"]["tagged"]);
-    return { ...user, userData: { ...user.userData, tagged: newTagged } };
-  };
-
-  const updateVersion = (user: T): User => {
-    if (user.version) {
-      if (user.version === 2) {
-        return user;
-      }
-    }
-    return { ...user, version: 2 };
-  };
-
-  const tagHandledUser = handleTaggedSets(value);
-  const backwardsCompatibleUser = updateVersion(tagHandledUser);
-  return backwardsCompatibleUser as User;
 };
 
 export const checkIsFolder = (

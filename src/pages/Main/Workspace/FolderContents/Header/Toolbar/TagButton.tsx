@@ -25,7 +25,7 @@ const TagButton = ({
     value ?? undefined
   );
 
-  const handleClick = (value: Color) => {
+  const handleClick = (value: Color | undefined) => {
     const handleOnChange = (value: Color | undefined) => {
       handleChange?.(value);
     };
@@ -60,7 +60,7 @@ const TagButton = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => setSelectedColor(undefined)}>
+        <DropdownMenuItem onClick={() => handleClick(undefined)}>
           <div className="h-5 w-5 rounded-full inline-flex items-center justify-center mr-2">
             {selectedColor ? (
               <i className="fa-regular fa-circle-xmark text-muted-foreground"></i>

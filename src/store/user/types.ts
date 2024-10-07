@@ -8,10 +8,18 @@ export const ColorMap = {
 
 export type Color = keyof typeof ColorMap;
 
-export type Folder = {
+// Utility Types
+
+type UpdateVersion<T, Version extends number> = Omit<T, "version"> & {
+  version: Version;
+};
+
+// V1
+
+type FolderV1 = {
   title: string;
   id: string;
-  contents: Array<Folder | PasswordItem>;
+  contents: Array<FolderV1 | PasswordItemV1>;
   description: string;
   created: Date;
   lastModified: Date;
@@ -19,7 +27,7 @@ export type Folder = {
   isFavourite: boolean;
 };
 
-export type PasswordItem = {
+type PasswordItemV1 = {
   title: string;
   id: string;
   website?: string;
@@ -33,28 +41,70 @@ export type PasswordItem = {
 };
 
 type UserDataV1 = {
-  directory: Folder;
+  directory: FolderV1;
   favourites: string[];
   tagged: {
     [K in Color]: Set<string>;
   };
 };
 
-export type UserData = UserDataV1;
-
 export type UserV1 = {
   displayName: string;
   username: string;
   usesPassword: boolean;
-  userData: UserData;
+  userData: UserDataV1;
   credential: string;
   avatarHex: `0x${string}`;
   version?: never;
 };
 
-export type UserV2 =
-  | Omit<Exclude<UserV1, undefined>, "version"> & { version: 2 };
+// V2
 
-export type UserAllVersions = UserV1 | UserV2;
+export type FolderV2 = FolderV1;
+export type PasswordItemV2 = PasswordItemV1;
+export type UserDataV2 = UserDataV1;
 
-export type User = UserV2;
+export type UserV2 = UpdateVersion<UserV1, 2>;
+
+// V3
+
+export const PasswordTypePairs: {
+  [key: string]: string;
+} = {
+  EMAIL: "Email",
+  WEB: "Website",
+  WIFI: "WiFi",
+  USER_KEY_PAIR: "User",
+  CRYPTO_WALLET_KEY: "Crypto Wallet Keys",
+  OTHER: "Other",
+  UNKOWN: "Unknown",
+};
+
+export type PasswordTypeEnums = keyof typeof PasswordTypePairs;
+
+export type FolderV3 = Omit<FolderV2, "contents"> & {
+  contents: Array<FolderV3 | PasswordItemV3>;
+};
+
+export type PasswordItemV3 = Omit<PasswordItemV2, "username"> & {
+  type: PasswordTypeEnums;
+  userId: string;
+};
+
+export type UserDataV3 = Omit<UserDataV2, "directory"> & {
+  directory: FolderV3;
+};
+
+type UserV2ToUserV3 = Omit<UserV2, "userData"> & {
+  userData: UserDataV3;
+};
+
+export type UserV3 = UpdateVersion<UserV2ToUserV3, 3>;
+
+// Final Types
+
+export type Folder = FolderV3;
+export type PasswordItem = PasswordItemV3;
+export type UserData = UserDataV3;
+export type UserAllVersions = UserV1 | UserV2 | UserV3;
+export type User = UserV3;
